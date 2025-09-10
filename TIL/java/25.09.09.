@@ -1,0 +1,31 @@
+25.09.09. TUE
+
+- C언어와달리 자바는 실수도 %연산 가능
+- 자바는 int형이 기본 연산자 - 자동 형변환 -> 결과 최소 int형
+- 리터럴+리터럴=형변환x
+
+char 변수 = 'A'; //A
+char 변수 = A; //컴파일 오류
+char 변수 = 65; //A
+char 변수 = '65'; //65
+int 변수 = 'A' //65
+int 변수 = A //컴파일 오류
+
+* 자바 타입 크기(바이트)
+
+byte  1 (-128~127)
+short 2 (-32768~32767)
+int 4 (약 -20억~20억)
+long 8
+
+char 2
+float 4
+double 8
+
+    String s;
+    
+		s='A' + 3 + "Korea";
+		System.out.println(s); //68Korea
+		
+		s='A' + "Korea" + 3  ;
+		System.out.println(s); //AKorea3
