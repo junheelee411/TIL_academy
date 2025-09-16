@@ -1,0 +1,69 @@
+25.09.16. Tue
+
+<배열>
+
+자바는 n차원 배열 x
+배열의 배열 o
+
+-열의 개수 가변
+
+int [][] a = new int[3][];
+a[0] = new int[4];
+a[0] = new int[3];
+a[0] = new int[5];
+
+0000
+000
+00000
+가능(가변배열)
+
+<printf>
+%d	정수를 출력
+%4d	정수를 오른쪽 정렬 + 최소 4칸으로 출력
+
+<석차 계산>
+count=인원수 rank=석차 tot[]=총점
+for(int k=count; k<count-1;k++) //count-1회 회전
+		{
+			for(int l=k+1; l<count; l++)
+			{	if (tot[k]>tot[l])
+					rank[k]++;
+				else if(tot[l] < tot[k])
+				{
+					rank[l]++;
+				}
+			}
+		}
+
+<array copy>
+
+int a[] = new int[] {10,20,30};
+		
+		int[]x =a; //주소 복사
+		System.out.println(a==x);
+		System.out.println(a[1] + " , " + x[1]);
+		
+		int[]b =new int[a.length];
+		
+		       //원본 배열, 원본에서 복사할 시작 위치, 복사할 배열, 복사시킬 위치, 복사할 개수
+		System.arraycopy(a,0,b,0,a.length); //값만 복사
+		System.out.println(a==b); //false
+		System.out.println(a[1] + " , " + b[1]);
+		
+		x[1]=100;
+		System.out.println(a[1] + " , " + x[1] + " , " + b[1]);
+		                    //100         100             20
+
+<배열 객체>
+초기화 하지 않으면 String : null, int : 0으로 초기화
+
+<array copy>
+		int [][] a = new int[][] {{10,20,30},{40,50,60}};
+		int [][] b = new int[a.length][a[0].length]; //2개 복사 (주소 복사)
+		//int[][] b=new int[2][3];
+		
+//명령행 인수는 무조건 String 인수값 넣어서 테스트할 때 쓰임
+
+
+
+
