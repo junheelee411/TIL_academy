@@ -4,9 +4,6 @@ public class EX12_SelectionSort {
 
 	public static void main(String[] args) {
 		int []num = new int[] {25,20,30,15,17};
-		int t;
-		
-		
 		System.out.println("source data : ");
 		for(int i=0;i<num.length;i++)
 		{
