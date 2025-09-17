@@ -137,6 +137,9 @@ public int d =40; // 어디에서나 접근 가능
 -반복문 제어 변수
 -조건문 내부 변수
 
+변수
+- 전역 변수(접근제어자 private < default < protected < public) - 인스턴스변수 / 클래스 변수
+- 지역 변수
 
 
 
