@@ -2,8 +2,6 @@ package ch06.score;
 
 public class ScoreVO {
 	
-	
-
 	private String hak;
 	private String name;
 	private int Kor;
