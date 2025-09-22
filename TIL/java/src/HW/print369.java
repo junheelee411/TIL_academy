@@ -2,61 +2,27 @@ package HW;
 
 import java.util.Scanner;
 
-public class method {
-	
+public class print369 {
+
 	public static void main(String[] args) {
-		
-		methodMaking t = new methodMaking();
-		t.luckyFrog();
-		
-	}
-}
+		// TODO Auto-generated method stub
 
-class methodMaking
-{	
-	Scanner sc = new Scanner(System.in);
-			
-	//도형의 내각의 합
-	public int interiorAngle(int n)
-	{
-		return n<3 ? -1 : 180*(n-2);
-	}
-	
-
-	//bmi 구하기
-	public double bmi(int kg, int m)
-	{
-		if(kg<=0 || m<=0)
-		{
-			System.out.println("잘못 입력하셨습니다.");
-			return -1;
-		}
-		else
-		{
-			double bmi=kg/(m*m);
-			return bmi;
-		}
 		
 	}
 	
-	// 행원의 개구리
-	public void luckyFrog()
-	{
-		double num=Math.random()*50+1;
-		while(num>0)
-		{
-		System.out.print("개굴 ");
-		num--;
-		}
-	}
+	static int num;
+	
 	
 	// 1000보다 작은 수 입력 받기
 	public int inputNum()
 	{
-		int n
+		Scanner sc = new Scanner(System.in);
+		
 		do{
 		System.out.println("1000보다 작은 양의 정수를 입력하세요.");
-	}while()
+		num = sc.nextInt();
+		
+		}while(num<=0 || num>=1000);
 	
 	// 자리수 구하기
 	public int[] digit(int num)
@@ -96,4 +62,6 @@ class methodMaking
 			System.out.println("짝");
 		}
 	}
+}
+
 }
