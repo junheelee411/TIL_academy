@@ -1,0 +1,7 @@
+Error occurred during initialization of boot layer java.lang.module.FindException: Module javaEX not found
+
+->
+
+module-info.java file 삭제
+
+- JVM이 javaEX라 모듈을 찾지 못해 발생하는 문제
