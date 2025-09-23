@@ -1,0 +1,139 @@
+25.09.23. TUE
+
+# Calendar
+
+## %tF 년원일 %tT 시분초 %tA 요일
+String s = String.format("%tF %tT %tA", cal,cal,cal);
+
+## cal.get(Calendar.MONTH) : 0~11
+int month = cal.get(Calendar.MONTH)+1;
+
+## 요일
+int day= cal.get(Calendar.DATE); // 일~토(1~7)
+
+## method
+System.out.println("이 달의 가장 마지막 일자 : " + cal.getActualMaximum(Calendar.DATE));
+System.out.println("현재 요일이 이달의 몇 번째 요일 " + cal.get(Calendar.DAY_OF_MONTH));
+System.out.println("올해의 현재 주차 : " + cal.get(Calendar.WEEK_OF_YEAR));
+//1~6주
+System.out.println("오전/오후 ?" + cal.get(Calendar.AM_PM));
+//오전 0 오후 1 반환
+System.out.println("시간(0~11) : " + cal.get(Calendar.HOUR));
+System.out.println("시간(0~23) : " + cal.get(Calendar.HOUR_OF_DAY));
+System.out.println("분 : " + cal.get(Calendar.MINUTE));
+System.out.println("초 : " + cal.get(Calendar.SECOND));
+System.out.println("ms : " + cal.get(Calendar.MILLISECOND));
+
+## UTC
+long t = cal.getTimeInMillis();
+System.out.println(t);
+- 1970 1 1 0시0분0초를 기준으로 밀리초로 환산하여 반환(UTC)
+- 협정 세계시 UTC에 +9하면 한국 시간
+
+## 날짜 변경
+//2026 5 32로 날짜 변경
+cal.set(Calendar.YEAR,	2026);
+cal.set(Calendar.MONTH,	5-1);
+cal.set(Calendar.DATE,	32);
+System.out.printf("%tF\n",cal); //260601 자동으로 넘어감
+
+## 날짜 더하기
+cal.set(2025, 7-1, 8);
+cal.add(Calendar.DATE, 100);
+System.out.printf("%tF\n",cal);
+
+## 요일 변경
+cal.set(Calendar.DAY_OF_WEEK, 1); // 일요일로 변경
+System.out.printf("%tF\n",cal);
+// 이상 현상 발생 : 실제 시간값이 변경되지 않음
+// 요일은 현재 시스템의 날짜가 있는 주의 요일을 반환
+//get() 메소드를 호출하지 않으면 시간을 변경하지 않는다
+//set()메소드는 calendar의 필드값은 변경하지만 시간은 변경하지 않는다
+//시간은 get(), getXxx(), add()메소드를 호출해야 변경가능
+cal.getTime();
+
+## 객체 복제
+//ca 객체를 복제하여 새로운 객체 작성(필드값도 복제)
+Calendar sday = (Calendar)cal.clone();
+
+## 주의 시작일
+sday.add(Calendar.DAY_OF_MONTH, -(w-1));
+System.out.printf("%tF\n", sday); 
+
+## 주의 마지막일
+eday.add(Calendar.DAY_OF_MONTH, 7-w);
+System.out.printf("%tF\n", eday); 
+
+## string -> int
+Integer.parseInt(문자열)
+
+# int -> String
+Integer.toString(x);
+
+## 유효성 검증 - miss matches
+while(! inputDate.matches("^()\\d{4}-\\d{2}-\\d{2}$"));
+
+# 디버깅
+멈출 곳에서 더블클릭 -점 생김
+- 디버깅 후 다시 더블클릭으로 해제
+
+# Math 클래스
+- 수학과 관련된 method 제공
+- method 및 field는 static으로 작성되어 있음
+
+# Random
+Random rnd = new Random();
+n= rnd.nextInt(100); // 0~99 사이의 난수
+
+# SecureRandom
+SecureRandom rnd = new SecureRandom();
+for(int i=1; i<=100; i++) {
+n= rnd.nextInt(100); // 0~99 사이의 난수
+System.out.printf("%5d",n);}
+
+# 숫자에 대한 포맷
+NumberFormat nf = NumberFormat.getInstance();
+
+n=12345;
+s=nf.format(n);
+System.out.println(s); //12,345 세자리마다 ","들어간 문자열로 반환
+
+s=nf.format(3456.2567);
+System.out.println(s); //3,456.257 기본이 세자리(반올림)
+
+s=nf.format(3456.2567);
+System.out.println(s); //3,456.257 기본이 세자리(반올림)
+
+NumberFormat nf2 = NumberFormat.getInstance();
+nf2.setMaximumFractionDigits(4); // 소수점 이하 최대 4자리
+nf2.setMinimumFractionDigits(2); // 소수점 이하 최소 2자리
+System.out.println(nf2.format(1234.45678));
+System.out.println(nf2.format(1234));
+
+# choiceFormat // 이하 중 가장 가까운 수
+limits = new double[]{0,60,65,70,75,80,85,90,95};
+grades = new String[]{"F","D","D+","C", "C+","B","B+","A","A+"};
+ChoiceFormat cf2 = new ChoiceFormat(limits,grades);
+System.out.println("100 : " + cf2.format(100));
+
+# Organize Imports (Ctrl + Shift + O)
+- 임포트 되지 않은 클래스 자동 임포트
+
+# Date 클래스 deprecated(비권장) -> Time 클래스 사용
+
+# 윤년, 평년
+LocalDate nowDate = now.toLocalDate();
+		// LocalDate nowDate = LocalDate.now();
+		if(nowDate.isLeapYear()) {
+			System.out.println("윤년 : 2월 29일");
+		} else {
+			System.out.println("평년 : 2월 28일");
+		}
+
+# LocalDate 날짜, 시간 설정
+System.out.println("현재 날짜 및 시간 : " + now);
+		LocalDateTime target = now.plusYears(1).plusMonths(2).plusDays(3).plusHours(5);
+		System.out.println(target);
+
+    LocalDateTime date = now.withYear(2027);
+		System.out.println(date);
