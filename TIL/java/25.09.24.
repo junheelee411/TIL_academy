@@ -1,2 +1,40 @@
 25.09.24. Wed
 
+// 2025년 9월 24일 오전 0시 0분
+		LocalDateTime idt = LocalDateTime.now();
+		
+		formatter = DateTimeFormatter.ofPattern("yyyy년 M월 dd일 a h시 m분"); //M 두개쓰면 09월
+		s=idt.format(formatter);
+		System.out.println(s);
+
+# 상속
+super class <- sub class
+private 필드는 sub class에서 접근 불가
+
+## is-a(상속 관계)
+- 택시는 자동차다. (Taxi is a car o / Car is a taxi x)
+
+## has-a(포함 관계)
+-자동차는 핸들을 가지고 있다. (Car has a handle)
+핸들이 없으면 자동차 x
+
+## 자바는 다중상속을 지원하지 않는다.
+단일상속, 다단게상속(a<-b<-c), 계층상속(a<-b,a<-c)
+
+## static method에서는 super나 this 키워드 사용 불가
+- 컴파일 에러  
+
+## overriding 
+-상위 클래스의 메소드와 동일한 시그니처(이름, 리턴타입, 파라미터 수/타입 일치)
+-상속 관계
+-하위클래스 메소드 접근 제어자 상위 클래스 것보다 크거나 같아야함
+-static, final, private 메소드 오버라이딩 불가
+-exception 제거 가능, 추가 불가
+-오버라이딩 된 메소드는 직접적으로 부를 수 없음
+
+## 클래스끼리는 상하관계 없으면 크기 비교 불가
+
+
+
+
+
