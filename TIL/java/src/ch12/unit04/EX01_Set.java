@@ -1,0 +1,54 @@
+package ch12.unit04;
+
+import java.util.HashSet;
+import java.util.Set;
+
+/*
+	Set
+	-순서를 유지하지 않는 데이터의 집합
+	-중복을 허용하지 않는다.
+	-하나의 null만 저장할 수 있다.
+	
+	구현 클래스
+	
+	HashSet
+	- set 인터페이스를 구현한 클래스
+	-요소의 저장 순서가 유지 되지 않는다.
+	- 멀티 쓰레드 환경에서 동기화되지 않는다.
+	LinkedHashset
+	- Hashset 하위 클래스
+	- 해쉬 테이블과 링크드 리스트를 구현한 Set
+	- 추가하는 순서로 저장된다.
+	- 멀티 쓰레드 환경에서 동기화 되지 않는다.
+	TreeSet
+	SortedSet 인터페이스를 구현한 클래스
+	정렬된 순서에 의해 반복
+	요소의 중복을 허용하지 않는다.
+	멀티 쓰레드 환경에서 동기화되지 않느다.
+	Comparable 인터페이스 구현한 클래스만 추가 가능
+ */
+
+
+public class EX01_Set {
+
+	public static void main(String[] args) {
+		Set<String> set = new HashSet<String>();
+		set.add("서울");
+		set.add("부산");
+		set.add("대구");
+		set.add("인천");
+		set.add("광주");
+		set.add("대전");
+		set.add("울산");
+		set.add("세종");
+		set.add("서울"); // 덮어씀
+		
+		System.out.println(set);
+		
+		for(String s : set) {
+			System.out.println(s + " ");
+		}
+		System.out.println();
+	}
+
+}

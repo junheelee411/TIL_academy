@@ -1,7 +1,9 @@
 package ch12.unit02;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 public class EX01_ArrayList {
 
@@ -59,17 +61,44 @@ public class EX01_ArrayList {
 		// 대한민국 앞에서부터 하나 삭제
 		System.out.println(list.remove("대한민국"));
 		
-		// 전체 출력 -1
+		// 전체 출력 -1 향상 for문
 		for(String str : list) {
 			System.out.print(str + " ");
 		}
 		System.out.println();
 		
-		// 전체 출력 -1
+		// 전체 출력 -2 for문
 		for(int i=0; i<list.size(); i++) {
 			System.out.print(list.get(i) + " ");
 		}
 		System.out.println();
+		
+		// 전체 출력 -3 반복자
+		Iterator<String> it = list.iterator();
+		while(it.hasNext()) {
+			String str = it.next();
+			System.out.print(str + " ");
+		}
+		System.out.println();
+	
+		// 전체 출력 - 역순 1
+		for(int i=list.size()-1; i>=0; i--) {
+			System.out.print(list.get(i) + " ");
+		}
+		System.out.println();
+		
+		// 전체 출력 - 역순 2
+		// ListIterator<String> it2 = list.listIterator(); // 순방향
+		ListIterator<String> it2 = list.listIterator(list.size()); // 역방향
+		while(it2.hasPrevious()) {
+			String str = it2.previous();
+			System.out.print(str + "");
+		}
+		System.out.println();
+		
+		// 모두 지우기
+		list.clear();
+		System.out.println("모두 삭제 후 리스트 크기 : " + list.size());
 		
 	}
 }
