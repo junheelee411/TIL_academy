@@ -41,6 +41,33 @@ TCL
 - 트랜잭션 제어 언어
 - COMMIT, ROLLBACK
 
+SQLPlus
+: 오라클 CLI 기반 인터페이스 도구
+: SQL 명령어 실행, PL/SQL 블록 실행, DB 관리, 스크립트 실행 등에 사용
+
+# 일반 계정으로 실행
+cmd> sqlplus 계정명/"password"
+SQL>
+
+# 접속 사용자 확인
+SQL> SHOW USER
+// USER은 "계정명"입니다
+
+# 접속 계정 변경
+SQL> CONN 계정명/"password"
+(CONN = connect)
+
+# SQLPlus 종료
+SQL> exit
+
+# 관리자 계정으로 실횅
+CMD> sqlplus sys/"password" AS SYSDBA
+
+# SYSDBA vs SYS
+: SYSDBA는 권한, SYS는 사용자
+: SYS - Oracle의 최상위 사용자
+: SYSDBA - SYS 사용자나 다른 사용자에게 줄 수 있는 최고 권한
+
 
 
 
