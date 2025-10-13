@@ -1,0 +1,187 @@
+-- ■ EMP 테이블 : 임플로이(EMPLOYEE, 사원) 정보를 가진 테이블
+ -- ※ 컬럼 정보
+     -- empNo : 사원번호
+     -- name : 이름
+     -- rrn : 주민번호
+     -- hireDate : 입사일
+     -- city : 출신도
+     -- tel : 전화번호
+     -- dept : 부서명
+     -- pos : 직위
+     -- sal : 급여
+     -- bonus : 보너스
+
+
+-- ■ SELECT 문을 이용한 조회
+ -- ※ SELECT 문
+   -- ο 테이블 또는 뷰의 전체 레코드(행) 출력
+     -- 특정 컬럼 만 출력(emp 테이블 : empNo, name, sal 컬럼)
+
+
+     -- 수식 사용
+
+
+     -- 모든 컬럼 출력(emp 테이블 : 모든 컬럼 출력)
+
+
+     -- 컬럼명을 변경하여 출력(emp 테이블 : empNo, name, sal 컬럼)
+
+
+     -- 테이블 명에 별명 부여(emp 테이블 : ROWNUM과 모든 컬럼 출력)
+
+
+ -- ※ 조건식과 표현식
+   -- ο 비교 연산자 : =, >, <, <=, >=, <>, !=, ^=
+     -- emp 테이블 : city가 서울인 자료 중 name, city 컬럼 출력
+
+
+     -- emp 테이블: city가 서울이 아닌 자료 중 name, city 컬럼 출력
+
+
+     -- emp 테이블 : sal+bonus 가 5500000원 이상인 자료 중 name, sal, bonus 컬럼 출력
+
+
+
+   -- ο 논리 연산자 : AND, OR, NOT
+     -- emp 테이블 : city가 서울이고 sal가 5000000원 이상인 자료 중 empNo, name, city, sal 컬럼 출력
+         
+
+     -- emp 테이블 : city가 서울, 경기, 인천인 자료 중 empNo, name, city, sal 컬럼 출력
+         
+
+     -- emp 테이블 : sal가 2000000~3000000을 제외한 자료 중 empNo, name, sal 컬럼 출력
+         
+
+
+   -- ο 그룹 비교 연산자 : ANY(SOME), ALL
+     -- emp 테이블 : city가 '서울', '경기', '인천' 인 자료 중 empNo, name, city 컬럼 출력
+        
+
+     -- emp 테이블 : sal가 5000000원 이상인 자료 중 empNo, name, sal 컬럼 출력
+         
+
+     -- emp 테이블 : sal가 6000000원 이상인 자료 중 empNo, name, sal 컬럼 출력
+         
+
+
+   -- ο SQL 연산자
+     -- 1) BETWEEN 조건식
+         -- emp 테이블 : sal가 2000000~3000000 사이 인 자료 중 name, sal 컬럼 출력
+
+
+         -- emp 테이블 : sal가 2000000~3000000을 제외한 자료 중 name, sal 컬럼 출력
+
+
+         -- emp 테이블 : hireDate가 2024년도인 자료중 name, hireDate 컬럼 출력
+
+
+
+     -- 2) IN 조건식
+         -- emp 테이블 : city가 '서울', '인천', '경기' 인  자료 중 name, city 컬럼 출력
+
+
+         -- emp 테이블 : city가 '서울', '인천', '경기' 를 제외한  자료 중 name, city 컬럼 출력
+ 
+
+         -- emp 테이블 : city와 pos가 '서울  이면서 '부장'이거나 '경기' 이면서 '과장' 인 자료 중 name, city, pos 컬럼 출력
+
+
+         -- emp 테이블 : city와 pos가 '서울' 이면서 '부장' 인 자료 중 name, city, pos 컬럼 출력(subquery)
+ 
+
+
+     -- 3) LIKE 조건식
+         -- emp 테이블 : name이 '김'씨인  자료 중 empNo, name 컬럼 출력
+   
+
+         -- emp 테이블 : LIKE 예           
+
+
+
+         -- ESCAPE
+       
+    
+         -- WITH : 반복적으로 사용되는 쿼리를 블럭화 할 경우 사용
+            WITH tb AS (
+                SELECT '가가가' name, '우리_나라' content  FROM dual
+                UNION ALL
+                SELECT '나나나' name, '자바%스프링' content  FROM dual
+                UNION ALL
+                SELECT '다다다' name, '우리나라' content  FROM dual
+                UNION ALL
+                SELECT '라라라' name, '모바일' content  FROM dual
+                UNION ALL
+                SELECT '마마마' name, '안드로이드%모바일' content  FROM dual
+            ) 
+            SELECT * FROM  tb;
+
+
+   -- ο NULL
+       -- emp 테이블 : tel이 NULL 인 자료 중 name, tel 컬럼 출력
+
+    
+       -- emp 테이블 : tel이 NULL 아닌 자료 중 name, tel 컬럼 출력
+
+
+   -- ο CASE 표현식(Expressions) 과 DECODE 함수
+      -- 1) CASE 표현식
+
+      -- 2) 형식1 : 간단한 CASE 표현식
+ 
+
+      -- 3) 형식2 : 조건 CASE 표현식
+
+
+     -- 4) DECODE 함수
+
+
+ -- ※ SELECT 구문의 ALL 과 DISTINCT 옵션
+   -- ο ALL 옵션
+
+
+   -- ο DISTINCT | UNIQUE 옵션
+
+
+
+ -- ※ SELECT 구문의 ORDER BY 절
+     -- 정렬 예
+
+     -- dept 오름차순 정렬하고 dept가 같으면 남자를 먼저 출력 : name, rrn, dept, sal
+
+     -- dept는 영업부를 먼저 출력 : name, dept
+
+     -- pos 가 부장, 과장, 대리, 사원순으로 출력 : name, dept, pos
+
+
+     -- 여자를 먼저 출력하고 성별이 동일하면 sal 내림차순 : name, rrn, sal
+
+
+     -- 서울 사람만 출력하며, 기본급+수당 내림차순으로 정렬 : name, city, sal+bonus
+
+
+     -- 여자만 출력하며, 부서오름차순으로 정렬하고 부서가 같으면 기본급 내림차순 정렬 : name, rrn, dept, sal
+
+
+     -- 전화번호가 NULL 인 데이터를 먼저 출력
+
+
+     -- 전화번호가 NULL 인 데이터를 나중에 출력
+
+
+
+ -- ※ 집합 연산자(Set Operators)
+     -- UNION 
+
+     -- UNION ALL
+
+     -- MINUS
+
+     -- INTERSECT
+
+
+ -- ※ pseudo 컬럼(의사 컬럼)
+   -- ο ROWID
+
+
+   -- ο ROWNUM
+
