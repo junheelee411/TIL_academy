@@ -1,0 +1,354 @@
+25.10.14. TUE
+
+@ SQL 함수
+
+ -- ※ 단일행 숫자 함수
+    -- ο 숫자 함수 종류
+       -- ABS(n) --절대값
+       SELECT ABS(-20),ABS(20) FROM DUAl;
+
+       -- SIGN(n) --부호반환(양수 1/음수 -1/0 0)
+       SELECT SIGN(-20),SIGN(0),SIGN(20) FROM DUAL;
+
+       -- MOD(n2, n1) --나머지 ()
+       
+       SELECT MOD(13,5) FROM dual;
+
+       SELECT 13-5*FLOOR(13/5) FROM dual; --MOD의 내부 연산 방식
+       
+              
+       -- REMAINDER(n2, n1) 쓸 일 없음!
+       
+        SELECT REMAINDER(13,5) FROM dual;
+        SELECT 13-5*ROUND(13/5) FROM dual;
+
+       -- CEIL(n) n이상의 가장 작은 정수
+       
+        SELECT CEIL(20),CEIL(20.5),CEIL(-20.5) FROM DUAL;
+       
+       -- FLOOR(n) n이하의 가장 큰 정수
+       
+        SELECT FLOOR(20),FLOOR(20.5),FLOOR(-20.5) FROM DUAL;
+       
+
+       -- ROUND(n [, integer ]) 반올림
+        SELECT ROUND(15.693,1) FROM dual; --소수점 한 자리 표시
+        SELECT ROUND(15.693,2) FROM dual; -- 소수점 두 자리 표시
+        SELECT ROUND(15.693) FROM dual; -- 정수로 반올림
+        SELECT ROUND(15.693,0) FROM dual; -- 정수로 반올림
+        SELECT ROUND(15.693,-1) FROM dual; -- 10의자리 표시(1의자리 반올림)
+        
+       -- TRUNC(n1 [, n2 ]) 내림
+       
+       SELECT TRUNC(15.693,1) FROM dual; -- 소수점 이하 1자리 표시
+       SELECT TRUNC(15.693,2) FROM dual; -- 소수점 이하 2자리 표시
+       SELECT TRUNC(15.693) FROM dual; -- 정수로 내림
+       SELECT TRUNC(15.693,0) FROM dual; -- 정수로 내림
+       SELECT TRUNC(15.693,-1) FROM dual; -- 10의자리 표시
+       
+       -- emp 테이블 name,sal,5만원권개수,1만원권개수,나머지금액
+       --sal을 지급하기 위해 필요한 5만원권,1만원권,나머지금액 출력
+       
+       SELECT name,sal,TRUNC(sal/50000) "5만원권개수", TRUNC(mod(sal,50000)/10000) "1만원권개수", MOD(sal,10000)"나머지금액"
+       FROM emp;
+       
+       
+ 
+
+       -- SIN(n), COS(n), TAN(n) 등
+       
+       SELECT SIN(30/180*3.141592)FROM dual;
+
+
+       -- EXP(n), POWER(n2, n1), SQRT(n), LOG(n2, n1), LN(n) 등
+        --지수,거듭제곱,제곱근,로그,자연로그
+
+
+
+ -- ※ 단일행 문자 함수
+    -- ο 문자 함수 종류
+       -- LOWER(char) 영문자를 모두 소문자로
+
+
+       -- UPPER(char) 영문자를 모두 대문자로
+        SELECT LOWER('SEOUL Korea 1234'),
+        UPPER('SEOUL Korea 1234')
+        FROM dual;
+    
+        WHERE tname='emp'; -- 아무것도 출력되지 않음. 문자리터럴은 대소문자 구분
+        
+        SELECT*FROM col
+        WHERE tname = UPPER('emp')
+
+       -- INITCAP(char) : 영문자에서 각 단어의 첫 글자를 대문자로 하고 나머지는 소문자로
+       SELECT INITCAP('SEOUL Korea 1234')FROM dual;
+
+
+       -- CHR(n [ USING NCHAR_CS ]) 아스키 코드에 해당하는 문자
+        SELECT CHR(75)||CHR(79) FROM dual;
+       
+       -- ASCII(char) 첫 글자의 코드값
+       SELECT ASCII(65) FROM dual;
+
+
+       -- ASCIISTR(char) 영문자와 숫자는 그대로 출력, 기타문자는 utf-16코드로        
+        SELECT CHR(75)||CHR(79) FROM dual;
+
+       -- SUBSTR(char, position [, substring_length ])
+        --문자열에서 position 위치에서 시작하여 길이만큼 추출
+        -- 오라클에서 인덱스는 1부터 시작
+        
+        SELECT SUBSTR('SEOUL KOREA',7,3) FROM dual; --7번째 위치부터 3개
+        SELECT SUBSTR('SEOUL KOREA',-5,3) FROM dual; -- 5번째 위치부터 3개
+        SELECT SUBSTR('SEOUL KOREA',7) FROM dual; -- 7번째 위치부터 끝까지
+        
+        --emp : name,rrn,city 1900년대 서울사람
+        
+        SELECT name,rrn,city
+        FROM emp
+        WHERE (SUBSTR(rrn,1,1))=9 AND city='서울';
+        
+        --emp : name,rrn,city 생년월일 82-87
+        
+        SELECT name,rrn,city
+        FROM emp
+        WHERE (SUBSTR(rrn,1,1))=8 AND (SUBSTR(rrn,2,1)= BETWEEN(2,7));
+        
+        -- 서울사람이면서 김씨만 name rrn city
+        
+        SELECT name,rrn,city
+        FROM emp
+        WHERE city='서울' and SUBSTR(name,1,1)='김';
+        
+               --김 이 최씨 name rrn city
+        
+        SELECT name,rrn,city
+        FROM emp
+        WHERE SUBSTR(name,1,1) IN('김','이','최');
+        
+        --emp:name,rrn,city 90-99년생 rrn 오름차순
+        
+        SELECT name,rrn,city
+        FROM emp
+        WHERE(SUBSTR(rrn,1,1))=9
+        ORDER BY rrn;
+        
+        --emp name,rrn,city 홀수달 출생 sal 내림차순
+        
+        SELECT name,rrn,city
+        FROM emp
+        WHERE MOD(SUBSTR(rnn,3,2),2)=1
+        ORDER BY sal DESC;
+        
+
+       -- INSTR(string , substring [, position [, occurrence ] ]) 문자열의 위치 반환, 없으면 0 / 대소문자 구분
+       
+       SELECT INSTR('Korea seoul', 'e') FROM dual; -- 처음부터 검색하여 'e'의 위치
+       SELECT INSTR('Korea seoul', 'abc') FROM dual; 
+       SELECT INSTR('Korea seoul', 'e',7) FROM dual; -- 7번째부터 검색하여 'e'의 위치
+       SELECT INSTR('Korea seoul', 'e',1,2) FROM dual; -- 1번째부터 검색하여 2번째로 'e'가 나오는  위치
+       SELECT INSTR('Korea seoul', 'E') FROM dual;
+       
+       --김씨만 출력
+       SELECT name,city FROM emp WHERE INSTR(name,'김')=1;
+       
+       --이름이 이가 포함된 사람
+       SELECT name,city FROM emp WHERE INSTR(name,'이')>0;
+       
+       --전화번호에서 서비스번호
+       SELECT name,tel,SUBSTR(tel,1,INSTR(tel,'-')-1) FROM emp;
+       
+
+        -- LENGTH(char)
+        SELECT LENGTH('대한민국') FROM dual; --4 문자 개수
+        SELECT LENGTHB('대한민국') FROM dual; --12 문자 byte수 (utf-8로 저장, 한글 1자 - 3바이트)
+
+       -- REPLACE(char, search_string [, replacement_string]) 치환
+       SELECT REPLACE('seoul Korea','seoul','busam')FROM dual;
+       --seoul을 busan으로 치환
+       SELECT REPLACE('123451234512345','5')FROM dual;
+       --모든 5 제거
+
+--emp name,dept,tel - 모두 제거후출력
+SELECT name,dept,REPLACE (tel,'-')
+FROM emp;
+
+--emp name,dept,tel dept마지막 부를 팀으로 변경
+SELECT name,SUBSTR(dept,1,LENGTH(dept)-1)||'팀' dept,tel
+FROM emp;
+
+       -- CONCAT(char1, char2) 문자열 결합
+       
+       SELECT CONCAT('서울','한국')FROM dual;
+
+
+       -- LPAD(expr1, n [, expr2]) 남은 왼쪽 공간을 expr2로 채워 길이가 n인 문자열 반환
+       -- RPAD(expr1, n [, expr2]) 남은 오른쪽 공간을 expr2로 채워 길이가 n인 문자열 반환
+
+        SELECT LPAD('korea',12,'*')FROM dual; --korea를 12칸으로 출력, 남은 왼쪽은 *로채움
+        SELECT RPAD('korea',12,'*')FROM dual;
+        SELECT LPAD('korea',3,'*')FROM dual;
+        SELECT LPAD('korea',0,'*')FROM dual;
+        SELECT LPAD('대한',6,'*')FROM dual;
+        
+        --emp name,rrn - rrn은 성별 다음부터는 *로 출력
+        
+        SELECT name,RPAD(SUBSTR(rrn,1,8),14,'*')rnn
+        FROM emp;
+            
+        -- emp:name,tel 전화번호 중 마지막 3자리 *로 출력
+        SELECT name,RPAD(SUBSTR(tel,1,LENGTH(tel)-3),LENGTH(tel),'*')tel
+        FROM emp;
+        
+        --emp name,sal,그래프 그래프는 sal에서 10만원당 * 하나씩 출력
+        
+        SELECT name,sal,LPAD('*',TRUNC(sal/100000),'*') graph
+        FROM emp;
+       
+        
+        --emp:name,name2,dept name2는 name 마스킹 이름이 이한이면 이* 이하나면 이*나 이하하나면 이**나
+        
+        SELECT name,
+        SUBSTR(name,1,1)||
+        CASE
+            WHEN LENGTH(name)=2 THEN '*'
+            ELSE LPAD('*',LENGTH(name)-2,'*') || SUBSTR(name,-1,1)
+            END name2,
+        dept    
+        FROM emp;
+        
+        
+        
+       -- LTRIM(char [,set])
+       
+       
+       -- RTRIM(char [,set])
+       -- TRIM([[LEADING | TRAILING | BOTH] trim_character FROM] trim_score)
+            SELECT ':' || LTRIM(' 우 리 나 라 ')|| ':' FROM dual;
+            SELECT ':' || RTRIM(' 우 리 나 라 ')|| ':' FROM dual;
+            SELECT ':' || TRIM(' 우 리 나 라 ')|| ':' FROM dual;
+            SELECT ':' || REPLACE(' 우 리 나 라 ', ' ')|| ':' FROM dual; -- 모든 공백 제거
+           -- TRANSLATE(expr, from_string, to_string)
+           
+        SELECT LTRIM('AABBCDAD','BA')FROM dual;
+        --앞 쪽에서 A,B 외의 문자가 나오기 전까지의 A,B 제거
+        SELECT RTRIM('우리나라대한','대한')FROM dual;
+        -- 우리나라
+
+        SELECT name,RTRIM(dept,'부')FROM emp;
+        SELECT name,RTRIM(dept,'부')|| '팀' dept FROM emp;        
+    
+        TRANSLATE(expr,from_strinh,, to_string --문자열 교체
+        
+        SELECT TRANSLATE('2KBH4T7').
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+       
+     999999 ##########################
+        FROM dual 숫자9 영문자 - #        
+        
+        
+        -- 숫자 없애기
+        select '자1바 스03프4바' from DUAL;
+      
+    
+     -- ※ 단일행 날짜 함수
+        -- ο  날짜형 데이터 연산 
+        --날짜+숫자 : 숫자만큼 일수를 더한다
+        --날짜-숫자 : 숫자만큼 일수를 뺀다
+        -- 날짜 + 숫자/24 : 숫자만큼 시간을 더한다
+        -- 날짜1 - 날짜2 : 날짜1에서 날짜2를 빼면 두 날짜 사이의 일수가 나온다
+        
+        --시스템날짜
+        SELECT SYSDATE FROM dual;
+        SELECT SYSDATE + 10 FROM dual;
+        SELECT SYSDATE - 10 FROM dual; 
+        SELECT SYSDATE -1/24 FROM dual;
+        SELECT To_CHAR(SYSDATE -1/24,'YYYY-MM-DD HH24:MI:SS')FROM dual;
+        
+        문자를 날짜로
+        
+        SELECT SYSDATE-TO_DATE('2001-12-05','YYYY-MM-DD')FROM dual; -- 살아온 날수
+        
+        -- 2025 12 25 디데이
+        SELECT TO_DATE('2025-12-25','YYYY-MM-DD')-SYSDATE FROM dual;
+        
+        -- 2025 10 10 기준으로 100일후
+        SELECT TO_DATE('2025-10-10','YYYY-MM-DD')+100 FROM dual;
+        
+        -- emp:name,hireDate(입사일),근무일수
+        SELECT name,hireDate,SYSDATE-hireDate as 근무일수
+        FROM emp
+        WHERE SYSDATE-hireDate<100
+        
+        
+        
+    -- ο  INTERVAL Literals(간격 리터럴)을 이용한 날짜 가감
+        
+        --1년 후 오늘
+        SELECT SYSDATE + (INTERVAL '1' YEAR) FROM dual;
+        
+        --1년 전 오늘
+        SELECT SYSDATE - (INTERVAL '1' YEAR) FROM dual;
+        
+        --1개월 더하기
+        SELECT SYSDATE + (INTERVAL '1' MONTH) FROM dual;
+
+        --1일 더하기
+        SELECT SYSDATE - (INTERVAL '1' DAY) FROM dual;
+
+        SELECT SYSDATE + (INTERVAL '1' HOUR)FROM dual; --1시간 더하기
+        SELECT SYSDATE + (INTERVAL '1' MINUTE)FROM dual; --1분 더하기
+        SELECT SYSDATE + (INTERVAL '1' SECOND)FROM dual; --1초 더하기
+        SELECT SYSDATE + (INTERVAL '02:10' HOUR TO MINUTE)FROM dual; --2시간 10분 더하기
+        
+        SELECT TO_DATE('2025-03-31','YYYY-MM-DD')
+        FROM dual;
+        
+        SELECT TO_DATE('2025-03-32','YYYY-MM-DD')
+        FROM dual;
+        
+        SELECT TO_DATE('2025-03-31','YYYY-MM-DD') + (INTERVAL '1' MONTH)
+        FROM dual;
+        
+        SELECT TO_DATE('2024-02-29','YYYY-MM-DD')
+        FROM dual;
+        
+        SELECT TO_DATE('2024-02-29','YYYY-MM-DD')  + (INTERVAL '1' YEAR)
+        FROM dual;
+        
+        SELECT SYSDATE  + (INTERVAL '15' HOUR)
+        FROM dual; -- 시간이 넘치면 다음날로 변경
+        
+        SELECT TO_DATE('2025-03-31','YYYY-MM-DD')  + (INTERVAL '1' DAY)
+        FROM dual; -- DAY에도 문제 없음
+        
+        -- emp : name hireDate 근속년수가 1년 미만인 사람
+        -- 근속년수가 1년 미만인 사람
+        -- 문제가 발생할 수 있음. 2024 2/29에 입사한 사람 있는 경우 에러 발생
+        
+        SELECT name, hireDate
+        FROM emp
+        WHERE hireDate + (INTERVAL '1' YEAR) > SYSDATE;
+        
+        
+    -- ο  날짜 함수 종류
+       -- SYSDATE
+       -- CURRENT_DATE
+       -- SYSTIMESTAMP
+       
+       -- 시스템 날짜
+        SELECT SYSDATE, CURRENT_DATE FROM dual; -- 25/10/10 형식 출력
+        -- (sql developer는 기본 날짜형식이 RR/MM/DD)
+        
+       -- 출력 형식 확인
+       SELECT * FROM nls_session_parameters;
+        
+       -- 날짜 출력 형식 변경
+       ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
+       SELECT SYSDATE FROM dual;
+
+        ALTER SESSION SET NLS_DATE_FORMAT = 'RR/MM/DD';
+        SELECT SYSDATE FROM dual;
+        
+        -- 시스템의 밀리초를 포함한 시스템 날짜 출력
+         SELECT SYSTIMESTAMP FROM dual;
