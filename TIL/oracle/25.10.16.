@@ -1,0 +1,426 @@
+25.10.16. THUR
+
+-- ■ SQL 함수
+ -- ※ 집계 함수(Aggregate Function)와 GROUP BY 절
+-- 행 그룹을 기반으로 단인 결과 출력
+-- 집계 함수 사용 가능 구문
+--SELECT절 HAVING절 ORDER BY절
+--WHERE절에서는 사용 불가
+--GROUP BY에 없는 컬럼은 집계함수와 함께 사용 불가
+--COUNT(*), GROUPING, GROUPING_ID를 제외하고 NULL 무시
+--ex) score 90 NULL 90 
+--AVG(score) 90 / AVG(NVL(score)) 60 / COUNT(score) 2 COUNT(*) 3
+   
+-- ο 집계 함수(Aggregate Function) 종류
+
+    -- COUNT( * ) - 행수 반환
+    -- COUNT( DISTINCT | ALL ] expr ) - 행수 반환
+
+       SELECT COUNT(*) FROM emp;
+       SELECT COUNT(tel) FROM emp;
+
+-- 서울 직원 수
+SELECT COUNT(*) FROM emp WHERE city = '서울';
+
+
+-- 부서별 직원 수
+SELECT dept, COUNT(*) FROM emp GROUP BY dept;
+
+SELECT *FROM emp;
+
+SELECT name, rrn, MOD(SUBSTR(rrn,8,1),2),
+       NULLIF(MOD(SUBSTR(rrn,8,1),2),1),
+       NULLIF(MOD(SUBSTR(rrn,8,1),2),0)
+FROM emp;
+
+SELECT COUNT(*) 전체,
+       COUNT(NULLIF(MOD(TO_NUMBER(SUBSTR(rrn,8,1)),2),1)) 여자,
+       COUNT(NULLIF(MOD(TO_NUMBER(SUBSTR(rrn,8,1)),2),0)) 남자
+FROM emp;
+
+SELECT MIN(TO_DATE(SUBSTR(rrn,1,6),'RR-MM-DD')) FROM emp;
+
+SELECT MAX(TO_DATE(SUBSTR(rrn,1,6),'RR-MM-DD')) FROM emp;
+ 
+
+
+
+
+    -- MAX([ DISTINCT | ALL ] expr) 최대값
+      SELECT MAX(sal), MIN(sal) FROM EMP;
+
+    -- MIN([ DISTINCT | ALL ] expr) 최소값
+
+
+    -- AVG([ DISTINCT | ALL ] expr)
+    -- SUM([ DISTINCT | ALL ] expr)
+
+
+
+    -- VARIANCE([ DISTINCT | ALL ] expr)
+    -- STDDEV([ DISTINCT | ALL ] expr)
+
+   --emp 월별 입사 인원수 전체인원수 1 2 3 4
+   SELECT COUNT(*) 전체,
+   COUNT(DECODE(TO_CHAR(hireDate, 'MM'), '01', 1)) AS M01,
+   COUNT(DECODE(TO_CHAR(hireDate, 'MM'), '02', 1)) AS M02,
+   COUNT(DECODE(TO_CHAR(hireDate, 'MM'), '03', 1)) AS M03,
+   COUNT(DECODE(TO_CHAR(hireDate, 'MM'), '04', 1)) AS M04,
+   COUNT(DECODE(TO_CHAR(hireDate, 'MM'), '05', 1)) AS M05,
+   COUNT(DECODE(TO_CHAR(hireDate, 'MM'), '06', 1)) AS M06,
+   COUNT(DECODE(TO_CHAR(hireDate, 'MM'), '07', 1)) AS M07,
+   COUNT(DECODE(TO_CHAR(hireDate, 'MM'), '08', 1)) AS M08,
+   COUNT(DECODE(TO_CHAR(hireDate, 'MM'), '09', 1)) AS M09,
+   COUNT(DECODE(TO_CHAR(hireDate, 'MM'), '10', 1)) AS M10,
+   COUNT(DECODE(TO_CHAR(hireDate, 'MM'), '11', 1)) AS M11,
+   COUNT(DECODE(TO_CHAR(hireDate, 'MM'), '12', 1)) AS M12
+FROM emp;
+
+   --emp 급여를 가장 많이 받는 사람의 empno,name,sal
+
+      SELECT empNo,name,sal
+      FROM emp
+      WHERE sal=(SELECT MAX(sal) FROM emp);
+
+   --emp 급여를 평균보다 적게 받는 사람의 empno,name,sal
+      
+      SELECT empNo,name,sal
+      FROM emp
+      WHERE sal<(SELECT AVG(sal) FROM emp);
+
+   
+   --emp 급여를 평균보다 적게 받는 사람 인원수
+      
+      SELECT COUNT(*)
+FROM emp
+WHERE sal < (SELECT AVG(sal) FROM emp);
+
+
+
+         --empNO,name,sal(sal-평균급여)
+
+
+
+-- ※ GROUP BY 절과 HAVING 절
+   --GROUP BY : 그룹으로 분리하여 그룹에 대한 통계를 낼 때 사용
+   --HAVING : GROUP BY의 결과에 대한 조건
+   --실행 과정
+      --FROM절-> WHERE절 -> GROUP BY절 -> HAVING절 -> SELECT절 -> ORDER BY절
+
+-- ο GROUP BY 절 사용 예
+
+--부서별 급여 합
+SELECT dept,SUM(sal) 
+FROM emp
+GROUP BY dept;
+
+-- dept의 pos별 급여 총합			
+SELECT dept,pos,SUM(sal) 
+FROM emp
+GROUP BY dept,pos;
+
+SELECT dept,pos,SUM(sal) 
+FROM emp
+GROUP BY dept,pos
+ORDER BY dept,pos;
+
+--emp dept별인원수
+SELECT dept,COUNT(*)
+FROM emp
+GROUP BY dept;
+
+--emp dept별 여자 인원수, 여자없는 부서 출력
+SELECT dept, COUNT(DECODE(MOD(SUBSTR(rrn,8,1),2),0,1)) 여자인원수
+FROM emp
+GROUP BY dept;
+
+
+--emp dept별 여자 인원수, 여자없는 부서 출력x
+SELECT dept, COUNT (*) 여자
+FROM emp
+WHERE MOD(SUBSTR(rrn,8,1),2)=0
+GROUP BY dept;
+
+--emp dept별 전체,남자,여자 인원 수
+SELECT dept,COUNT(*) 전체, COUNT(NULLIF(MOD(TO_NUMBER(SUBSTR(rrn,8,1)),2),0)) 남자, COUNT(NULLIF(MOD(TO_NUMBER(SUBSTR(rrn,8,1)),2),1)) 여자
+FROM emp
+GROUP BY dept;
+
+--개발부 인원수
+SELECT COUNT(*)
+FROM emp
+WHERE dept='개발부';
+
+--emp dept별 남자와 여자 비율(부서별 인원수대비)
+SELECT dept,
+ROUND(COUNT(DECODE(MOD(SUBSTR(rrn,8,1),2),1,1))/COUNT(*)*100) 남자비율,
+ROUND(COUNT(DECODE(MOD(SUBSTR(rrn,8,1),2),0,1))/COUNT(*)*100) 여자비율
+FROM emp
+GROUP BY dept;
+
+--emp: dept별 남자와 여자 급여의 총합, 평균 / dept 총합 평균
+
+SELECT dept,
+       DECODE(MOD(SUBSTR(rrn, 8, 1), 2), 0, '여자', '남자') AS 성별,
+       SUM(sal) AS 총합,
+       ROUND(AVG(sal)) AS 평균
+FROM emp
+GROUP BY dept, MOD(SUBSTR(rrn, 8, 1), 2)
+ORDER BY dept, 성별;
+
+-- ο HAVING 절 사용 예 : GROUP BY 결과에 대한 조건
+--부서별 인원수
+SELECT dept,COUNT(*) 인원수
+FROM Emp
+GROUP BY dept
+HAVING COUNT(*)>=7;
+
+--부서별여자인원수
+
+SELECT dept, COUNT(*)
+FROM emp
+WHERE MOD(SUBSTR(rrn,8,1),2)=0
+GROUP by DEPT
+HAVING COUNT(*) >=5;
+
+/*
+서브쿼리(subquery)
+--SELECT문,INSERT문,UPDATE문,DELETE문 등에서 사용 가능한 SELECT 문
+--SELECT문은 SELECT절, FROM절,WHERE절 등에서 사용 가능
+-- 서브쿼리는 단독 실행 가능
+*/
+SELECT empNO,Name, sal
+FROM emp
+WHERE sal = (SELLECT MIN(sal) FROM emp);
+
+SELECT empNo,name,sal
+FROM emp
+WHERE sal>(SELECT sal FROM emp WHERE city ='서울');
+-- 연산은 하나의 값하고만 비교 가능 / 서브쿼리 줄 여러개라 안됨
+
+SELECT empNo,name,sal 
+FROM emp
+WHERE sal IN (SELECT sal FROM emp WHERE city = '서울');
+
+--서울 아닌 사원중 서울 평균보다 급여를 많이 받는 사람 출력
+SELECT name,city,sal
+FROM emp
+WHERE city!='서울' AND sal>(SELECT avg(sal) from emp where city='서울');
+
+-- 여자 중 sal을 가장 많이 받는 사람 name,rrn,sal
+SELECT name,rrn,sal
+FROM emp -- 남여 급여 똑같을수있음
+WHERE MOD(SUBSTR(rrn,8,1),2)=0 AND sal=(select max(sal) FROM emp where mod(substr(rrn,8,1),2)=0);
+
+-- sal+bonus를 가장 많이 받는 사람 name,bonus,sal,sal+bonus
+
+SELECT name,bonus,sal,sal+bonus pay
+FROM emp
+WHERE sal+bonus=(SELECT MAX(Sal+bonus)FROM emp);
+
+-- 부서별 인원수가 가장 많은 부서명 및 인원수
+-- 부서별 인원수
+SELECT dept, COUNT(*) AS 인원수
+FROM emp
+GROUP BY dept;
+
+WITH tb AS(
+   SELECT dept,COUNT(*) cnt FROM emp GROUP BY dept
+)
+SELECT dept, cnt
+FROM tb
+WHERE cnt=(SELECT MAX(cnt) FROM tb);
+
+-- 입사연도별 입사인원수가 가장 많은 연도 및 인원수
+
+SELECT TO_CHAR(hireDate,'YYYY')년도,COUNT(*) cnt
+FROM emp
+GROUP BY TO_CHAR(hireDate,'YYYY')
+ORDER BY cnt DESC;
+
+WITH tb as(
+   SELECT TO_CHAR(hireDate,'YYYY')년도, COUNT(*) cnt FROM emp GROUP BY TO_CHAR(hireDate,'YYYY')
+)
+SELECT 년도, cnt FROM tb
+WHERE cnt=(SELECT MAX(cnt) FROM tb);
+
+
+--생일이 동일한 사람이 2명 이상인 사람들의 name,birth
+
+SELECT name,TO_DATE(SUBSTR(rrn,1,6),'RRMMDD')birth
+FROM emp
+WHERE SUBSTR(rrn,3,4) IN
+(
+   SELECT SUBSTR(rrn,3,4) FROM emp
+   GROUP BY SUBSTR(rrn,3,4)
+   HAVING COUNT(*) >=2
+)
+ORDER BY TO_CHAR(birth,'MMDD');
+
+
+
+
+ -- ※ ROLLUP 절과 CUBE 절
+    -- ο ROLLUP 절 예
+         -- GROUP BY ROLLUP(a, b)
+            a+b    => a 별 b의 소계 : GROUP BY a, b 의 결과
+            a       => a 별 소계
+            전체   => 마지막에 한번
+
+         -- GROUP BY x, ROLLUP(a, b)
+            x+a+b
+            x+a
+            x
+
+         -- GROUP BY x, ROLLUP(a)
+            x+a
+            x
+
+       -- dept별 pos의 sal 소계, dept별소계, 마지막에 총계 출력
+       SELECT dept, pos, SUM(sal)
+       FROM emp
+       GROUP BY dept,pos ROLLUP(DEPT,POS)
+       ORDER BY dept,pos;
+      --1)레벨은 부서에 대한 r
+ 
+
+       -- dept별 pos의 sal 소계, dept별 소계 출력하며 마지막에 총계는 출력하지 않는다.
+
+
+      -=dept 인원수와 마지막에 전체 인원수 출력
+
+                                                                                                          
+--CUBE절 예 : 결합 가능한 모든 값에 대하여 다차원 집계를 생성
+
+       -- dept별 pos의 sal 소계, dept별 소계, pos별 소계, 마지막에 총계 출력
+SELECT dept,pos,Sum(sal)
+FROM emp
+GROUP BY dept,pos
+ORDER BY dept,pos;
+
+SELECT city,dept,pos,Sum(sal)
+FROM emp
+GROUP BY CUBE(city,dept,pos)
+ORDER BY city,dept,pos;
+
+SELECT city,dept,pos,Sum(sal)
+FROM emp
+GROUP BY city,CUBE(dept,pos)
+ORDER BY city,dept,pos;
+
+--dept별 남자와 여자 인원수 및 dept별 소계, 전체인원수 출력
+
+SELECT dept,DECODE(MOD(SUBSTR(rrn,8,1),2),1,'남자',0,'여자') 성별, COUNT(*)
+FROM emp
+GROUP BY ROLLUP(dept, MOD(substr(rrn,8,1),2))
+ORDER BY dept;
+
+--전체인원 빼기
+SELECT dept,DECODE(MOD(SUBSTR(rrn,8,1),2),1,'남자',0,'여자') 성별, COUNT(*)
+FROM emp
+GROUP BY dept,ROLLUP(MOD(substr(rrn,8,1),2))
+ORDER BY dept;
+
+SELECT dept,DECODE(MOD(SUBSTR(rrn,8,1),2),1,'남자',0,'여자') 성별, COUNT(*)
+FROM emp
+GROUP BY CUBE(dept,MOD(substr(rrn,8,1),2))
+ORDER BY dept;
+
+ -- ※ GROUPING 함수와 GROUP_ID 함수
+    -- ο GROUPING 함수
+         --GROUPING(컬럼): 결과가 0이면 컬럼이 ROLLUP 연산에 참여, 1이면 사용되지 않음
+
+         SELECT dept,pos,GROUPING(dept),GROUPING(pos),TRUNC(AVG(sal))
+         FROM emp
+         GROUP BY ROLLUP(dept,pos) 
+         ORDER BY dept;    
+
+         SELECT dept,pos,TRUNC(AVG(sal))
+         FROM emp
+         GROUP BY ROLLUP(dept,pos) 
+         HAVING GROUPING(pos)=1
+         ORDER BY dept;
+
+         SELECT dept,TRUNC(AVG(sal))
+         FROM emp
+         GROUP BY ROLLUP(dept) 
+         ORDER BY dept;
+
+         
+
+    -- ο GROUP_ID 함수
+-- SELECT문에서 GROUP BY로 분리되어 복제된 번호
+-- 0~n-1까지 출력
+
+SELECT dept,empNo,name,sal
+FROM emp
+ORDER BY dept;
+
+--dept,empNo,name,sal,부서별급여합,전체합 출력
+
+SELECT dept,empNo,name,sum(sal)||'원' 급여
+FROM emp
+GROUP BY ROLLUP(dept,(empNo,name))
+ORDER BY dept;
+
+SELECT dept,empNo,
+GROUP_ID(),
+DECODE(GROUP_ID(),0,NVL(name,'합계'),'평균')name,
+DECODE(GROUP_ID(),0,SUM(sal),ROUND(AVG(sal)))sal
+FROM emp
+GROUP BY dept, ROLLUP(dept,(empNo,name))
+ORDER BY dept,GROUP_ID(),empNo;
+
+SELECT dept,empNo,
+GROUP_ID(),
+DECODE(GROUP_ID(),0,NVL(name,'합계'),'평균')name,
+DECODE(GROUP_ID(),0,SUM(sal),ROUND(AVG(sal)))sal
+FROM emp
+GROUP BY dept, ROLLUP(dept,(empNo,name))
+ORDER BY dept,empNo;
+
+
+SELECT dept,empNo,name,group_ID(), sum(sal)||'원' 급여
+FROM emp
+GROUP BY Rollup(dept,(empNo,name))
+ORDER BY dept,GROUP_ID(),empNo;
+
+
+-- ■ SQL 함수
+ -- ※ 분석 함수(analytic functions) 와 윈도우 함수(window functions)
+    -- ο 순위 관련 함수
+
+        /* 점수 100 100 90 80
+        RANK() OVER() 함수 : 1 1 3 4
+        DENSE_RANK() OVER() 함수 : 1 1 2 3
+        ROW_NUMBER() OVER() 함수 : 1 2 3 4
+        */
+
+      -- 1) RANK() OVER() 함수
+      -- 2) DENSE_RANK() OVER() 함수
+      -- 3) ROW_NUMBER() OVER( ) 함수
+
+        --전체 대상 순위
+        SELECT name,sal,
+            RANK() OVER(ORDER BY sal) 순위
+        FROM emp;
+        
+        SELECT name,sal,
+        RANK() OVER(ORDER BY sal DESC,bonus DESC) 순위
+        FROM emp;
+
+        --그룹별
+        SELECT name,dept,sal,
+        RANK() OVER(PARTITION BY dept ORDER BY sal DESC) 순위
+        FROM emp;
+
+        --city별 쉰위를 구하고 같으면 dept별 순위
+        SELECT name,city,dept,sal,
+          RANK() OVER(PARTITION BY city ORDER BY sal DESC) 시도별순위,
+          RANK() OVER(PARTITION BY city, dept ORDER BY sal DESC) 시도의부서별순위
+        FROM emp;
+
+    -- RANK(), DENSE_RANK(), ROW_NUMBER()
+    SELECT name,sal, RANK() OVER(ORDER BY sal DESC) 순위 FROM emp;
+    SELECT name,sal, DENSE_RANK() OVER(ORDER BY sal DESC) 순위 FROM emp;
+    SELECT name,sal, ROW_NUMBER() OVER(ORDER BY sal DESC) 순위 FROM emp;
