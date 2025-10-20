@@ -1,0 +1,313 @@
+25.10.20. Mon
+
+-- ■ 데이터 딕셔너리와 제약조건
+ -- ※ 데이터 딕셔너리(Data Dictionary)
+   -- ο 주요 데이터 사전
+     -- 모든 데이터 사전 테이블 정보 확인
+     SELECT * FROM DICTIONARY;
+     SELECT * FROM DICT;
+     SELECT COUNT(*) FROM DICTIONARY;
+     
+     -- 현재 사용자의 모든 객체 정보
+     SELECT * FROM USER_OBJECTS;
+     SELECT * FROM obj;
+
+     -- 테이블 정보 확인
+     SELECT * FROM tabs;
+     SELECT * FROM tab;
+     SELECT * FROM user_tables;
+     
+     -- 테이블의 컬럼 정보 확인(테이블명은 대문자로)
+     SELECT * FROM user_tab_columns;
+     SELECT * FROM cols WHERE table_name = 'EMP';
+     SELECT * FROM col WHERE tname = 'EMP';
+
+     -- 제약조건 확인
+        -- 어떤 컬럼에 제약조건이 부여되었는지 확인은 불가(테이블명은 대문자로)
+        -- constraint_type → P:기본키, C:NOT NULL 등, U:UNIQUE, R:참조키 등 (제약 조건의 종류만 알 수 있음)
+
+
+   --제약 조건 확인
+
+ -- Create TEST1 table
+CREATE TABLE TEST1 (
+    num NUMBER PRIMARY KEY,
+    name VARCHAR2(30) NOT NULL,
+    code VARCHAR2(30) UNIQUE 
+);
+
+CREATE TABLE EXAM1 (
+    num NUMBER PRIMARY KEY,
+    name VARCHAR2(30) NOT NULL,
+    code VARCHAR2(30),
+    CONSTRAINT fk_exam1_code FOREIGN KEY (code)
+        REFERENCES TEST1(code)
+);
+
+
+   -- 제약조건 확인
+   SELECT * FROM user_constraints WHERE table_name = 'TEST1';
+   SELECT * FROM user_constraints WHERE table_name = 'EXAM1';
+
+   R: 참조 테이블
+
+   INSERT INTO exam1(num,name,code) VALUES(1,'aaa','x100');
+   -- 부모 테이블에 값이 존재하지 않음
+   INSERT INTO exam1(num,name,code) VALUES(1,'aaa',NULL);
+
+   DROP TABLE TEST1 Purge;
+   -- error : 자식 테이블이 존재하면 부모 테이블은 삭제 불가
+
+   -- 강제로 삭제 - 참조키도 삭제됨
+   DROP TABLE TEST1 CASCADE CONSTRAINTS PURGE;
+   SELECT * FROM user_constraints WHERE table_name = 'EXAM1';
+
+   DROP TABLE exam1 PURGE;
+   
+   --참조하는 컬럼과 참조당하는 컬럼은 타입과 크기는 일치해야하지만, 컬럼명은 다를 수 있다.
+
+   --test2 : 부모테이블
+   CREATE TABLE test2(
+      num NUMBER PRIMARY KEY,
+      subject VARCHAR2(50) NOT NULL
+   );
+
+   --ex
+
+   CREATE TABLE member1 (
+   id VARCHAR2(30) PRIMARY KEY,
+    pwd VARCHAR2(100) NOT NULL,
+    name VARCHAR2(30) NOT NULL
+);
+
+--관계 1:1 식별관계 - 기본키이면서 참조키
+    CREATE TABLE member2 (
+   id VARCHAR2(30),
+   birth DATE,
+   tel VARCHAR2(30),
+   CONSTRAINT pk_member2_id PRIMARY key(id),
+   CONSTRAINT fk_member2_id FOREIGN key(id)
+   REFERENCES member1 (id)
+);
+
+drop table test2 purge;
+select * from tab;
+
+--관계 1:다 (방명록)
+--비식별관게 : 단순히 참조만 하는 경우
+
+CREATE TABLE guest (
+    num NUMBER PRIMARY KEY,
+    id VARCHAR2(30) NOT NULL,
+    content VARCHAR2(4000) NOT NULL,
+    reg_date DATE DEFAULT SYSDATE,
+    FOREIGN KEY (id) REFERENCES member1(id)
+);
+
+--두 개의 컬럼을 기본키로 설정(게시글 좋아요)
+-- 참조키 2개
+-- 관계 -> member1 : guestLike => 1:다, 
+--guest : guestLike => 1:다;
+--식별관계
+-- 복합키인 경우 1:다 관계에서도 식별 관계일 수 있다
+CREATE TABLE guestLike(
+   num NUMBER,
+   id VARCHAR(30),
+   PRIMARY KEY(num,id), 
+   FOREIGN KEY (num) REFERENCES guest (num),
+   FOREIGN KEY (id) REFERENCES member1 (id)
+);
+
+select * From tab;
+
+-- 하나의 테이블을 두 번 참조 : 쪽지 테이블
+      CREATE TABLE note(
+         num NUMBER,
+         senderId VARCHAR2(30) NOT NULL,
+         recieverId VARCHAR2(30) NOT NULL,
+         content VARCHAR2(4000) NOT NULL,
+         PRIMARY KEY(num),
+         FOREIGN KEY(senderId) REFERENCES member1(id),
+         FOREIGN KEY(recieverId) REFERENCES member1(id)
+      );
+-- 자기 자신 참조 -- 목차 대분류 중분류 소분류
+
+--member1의 모든 자식 출력
+  SELECT fk.owner, fk.constraint_name , fk.table_name 
+        FROM all_constraints fk, all_constraints pk 
+        WHERE fk.r_constraint_name = pk.constraint_name 
+                   AND fk.constraint_type = 'R' 
+                   AND pk.table_name = UPPER('member1')
+        ORDER BY fk.table_name;
+--guestLike의 모든 부모 출력
+        SELECT table_name FROM user_constraints
+        WHERE constraint_name IN (
+              SELECT r_constraint_name 
+              FROM user_constraints
+              WHERE table_name = UPPER('guestLike') AND constraint_type = 'R'
+          );
+
+         DROP TABLE note PURGE;
+         DROP TABLE GUEST PURGE;
+         DROP TABLE guestLike PURGE;
+         DROP TABLE member1 PURGE;
+
+         select * FROM tab;
+
+         -----
+         --자기 자신 참조 : 대분류, 중분류 등에서 사용
+         CREATE TABLE test1(
+            num NUMBER PRIMARY KEY,
+            subject VARCHAR2(100) NOT NULL,
+            snum NUMBER,
+            FOREIGN KEY(snum) REFERENCES test1(num)
+         );
+
+         INSERT INTO test1 (num,subject,snum) VALUES(1,'프로그래밍',NULL);
+         INSERT INTO test1 (num,subject,snum) VALUES(2,'데이터베이스',NULL);
+         INSERT INTO test1 (num,subject,snum) VALUES(3,'자바',1);
+         INSERT INTO test1 (num,subject,snum) VALUES(4,'파이썬',1);
+
+         SELECT * FROM test1;
+
+         drop table test1 purge;
+
+         SELECT * FROM tab;
+
+         -------------------------------
+         가 나 다 라 마 바 사 아 자 차 카 타 파 하 
+         각 낙 닥 락 맙 박 삭 악 작 착 칵 탁 팍 학
+         간 난 단 란 만 반 산 안 잔 찬 칸 탄 판 한
+         갇 낟 닫 랃 맏 받 삳 앋 잗 찯 칻 탇 팓 핟
+
+
+         CREATE TABLE test1(
+            num NUMBER PRIMARY KEY,
+            subject VARCHAR2(100) NOT NULL
+         );
+
+         CREATE TABLE exam2(
+            code VARCHAR2(30) PRIMARY KEY,
+            name VARCHAR2(30) NOT NULL,
+            num NUMBER NOT NULL,
+            FOREIGN KEY(num) REFERENCES test1(num)         
+         );
+
+         INSERT INTO test1(num,subject) VALUES(1,'aaa');
+         INSERT INTO test1(num,subject) VALUES(2,'bbb');
+         INSERT INTO test1(num,subject) VALUES(3,'ccc');
+
+         INSERT INTO exam2(code,name,num) VALUES('x101','b',1);
+         INSERT INTO exam2(code,name,num) VALUES('x102','c',2);
+         INSERT INTO exam2(code,name,num) VALUES('x103','d',1);
+
+         SelECT * FROM test1;
+         SelECT * FROM exam2;
+
+         UPDATE test1 SET num = 22 WHERE num=2;
+         --error : num의 2는 참조 당하고 있음 -> 수정 불가
+         UPDATE test1 SET num = 22 WHERE num=3;
+         --가능
+
+         SELECT * FROM exam2;
+
+         INSERT INTO exam2(code,name,num) VALUES ('x104','e',3);
+         -- 무결성 제약 조건 위배 / 부모 키가 없음
+
+         DELETE FROM test1 WHERE num =1;
+         -- 무결성 제약 조건 위배 / 자식레코드가 해당 레코드를 참조하고있음
+
+         DELETE FROM test1 WHERE num =30;
+         -- 침조당하고 있지 않음 -> 문제없이 삭제 가능
+
+         select * from test1;
+
+         drop table exam2;
+         drop table test1;
+         commit;
+         ----------------
+         --ON DELETE CASCADE 옵션
+         --부모 테이블의 레코드가 삭제되면 참조하고 있는 자식 레코드도 삭제
+
+         create table test1(
+            code varchar2(50) primary key,
+            subject varchar2(100) NOT NULL
+         );
+
+         create table exam1(
+            num NUMBER PRIMARY KEY,
+            name VARCHAR2(100) NOT NULL,
+            code VARCHAR2(50) NOT NULL,
+            FOREIGN KEY(code) REFERENCES test1(code) ON DELETE CASCADE
+         );
+         
+         create table sam1(
+            pnum NUMBER PRIMARY KEY,
+            num NUMBER NOT NULL,
+            qty NUMBER(10) NOT NULL,
+            FOREIGN KEY(num) REFERENCES exam1(num) ON DELETE CASCADE
+         );
+
+         select * FROM tab;
+         commit;
+
+
+
+
+ 
+     -- 현재 사용자가 가지고 있는 컬럼에 부여된 제약조건 정보 확인
+        -- 어떤 컬럼에 제약조건이 부여되었는지 확인 가능
+        -- 제약 조건의 종류는 확인 불가능
+
+        SELECT * FROM USER_CONS_COLUMNS WHERE table_name = 'EMP';
+
+
+     -- 제약조건 및 컬럼 확인
+        SELECT u1.table_name, column_name, constraint_type, u1.constraint_name, search_condition
+        FROM user_constraints u1
+        JOIN user_cons_columns u2 ON u1.constraint_name = u2.constraint_name
+        WHERE u1.table_name = UPPER('테이블명');
+
+        SELECT u1.table_name, column_name, constraint_type, u1.constraint_name, search_condition
+        FROM user_constraints u1
+        JOIN user_cons_columns u2 ON u1.constraint_name = u2.constraint_name
+        WHERE u1.table_name = UPPER('EMP');
+
+     -- 부와 자 관계의 모든 테이블 출력
+        SELECT fk.owner, fk.constraint_name,
+                    pk.table_name parent_table, fk.table_name child_table
+        FROM all_constraints fk, all_constraints pk 
+        WHERE fk.r_constraint_name = pk.constraint_name AND fk.constraint_type = 'R'
+        ORDER BY fk.table_name;
+
+        
+
+     -- 『테이블명』을 참조하는 모든 테이블 목록 출력(자식 테이블 목록 출력)
+        SELECT fk.owner, fk.constraint_name , fk.table_name 
+        FROM all_constraints fk, all_constraints pk 
+        WHERE fk.r_constraint_name = pk.constraint_name 
+                   AND fk.constraint_type = 'R' 
+                   AND pk.table_name = UPPER('테이블명')
+        ORDER BY fk.table_name;
+ 
+     -- 『테이블명』이 참조하고 있는 모든 테이블 목록 출력(부모 테이블 목록 출력)
+        SELECT table_name FROM user_constraints
+        WHERE constraint_name IN (
+              SELECT r_constraint_name 
+              FROM user_constraints
+              WHERE table_name = UPPER('테이블명') AND constraint_type = 'R'
+          );
+
+     -- 『테이블명』의 부모 테이블 목록 및 부모 컬럼 목록 출력
+        --  부모 2개 이상으로 기본키를 만든 경우 여러번 출력 됨
+        SELECT fk.constraint_name, fk.table_name child_table, fc.column_name child_column,
+                    pk.table_name parent_table, pc.column_name parent_column
+        FROM all_constraints fk, all_constraints pk, all_cons_columns fc, all_cons_columns pc
+        WHERE fk.r_constraint_name = pk.constraint_name
+                   AND fk.constraint_name = fc.constraint_name
+                   AND pk.constraint_name = pc.constraint_name
+                   AND fk.constraint_type = 'R'
+                   AND pk.constraint_type = 'P'
+                   AND fk.table_name = UPPER('테이블명');
+
+
