@@ -1,0 +1,205 @@
+-- ■ 데이터 딕셔너리와 제약조건
+ -- ※ 제약 조건(constraint)
+    -- ο 기본 키(PRIMARY KEY)
+    -- 1) 테이블 생성과 동시에 기본 키 설정
+      -- (1) 컬럼 레벨 방식의 PRIMARY KEY 설정(inline constraint)
+        -----------------------------------------------------
+        -- 기본 형식
+        CREATE TABLE 테이블명 (
+               컬럼  데이터타입  [ CONSTRAINT 제약조건명 ]  PRIMARY KEY
+                                 :
+        );
+
+
+      -- (2) 테이블 레벨 방식의 PRIMARY KEY 설정(out of line constraint)
+        -----------------------------------------------------
+        -- 기본 형식
+        CREATE TABLE 테이블명 (
+               컬럼  데이터타입   [ 제약조건 ],
+                                 :
+               [ CONSTRAINT 제약조건이름 ] PRIMARY KEY (컬럼 [,컬럼])
+        );
+
+
+    -- 2) 존재하는 테이블에 기본 키 설정
+       -----------------------------------------------------
+       -- 기본 형식
+       ALTER TABLE 테이블명 ADD [ CONSTRAINT 제약조건명 ]  PRIMARY KEY (컬럼 [,컬럼]);
+
+
+    -- 3) 기본키 제약 조건 삭제
+       -----------------------------------------------------
+       -- 기본 형식
+       ALTER TABLE 테이블명 DROP PRIMARY KEY;
+       ALTER TABLE 테이블명 DROP CONSTRAINT 제약조건명;
+
+
+   -- ο UNIQUE 제약 조건
+    -- 1) 테이블 생성과 동시에 UNIQUE 제약 조건 설정
+      -- (1) 컬럼 레벨 방식의 UNIQUE 제약 설정
+        -----------------------------------------------------
+        -- 기본 형식
+        CREATE TABLE 테이블명 (
+               컬럼  데이터타입   [ CONSTRAINT 제약조건명 ]  UNIQUE
+                                 :
+        );
+
+      -- (2) 테이블 레벨 방식의 UNIQUE 제약 조건 설정
+        -----------------------------------------------------
+        -- 기본 형식
+        CREATE TABLE 테이블명 (
+               컬럼  데이터타입  [ 제약조건 ] ,
+                                 :
+               [ CONSTRAINT 제약조건명 ] UNIQUE (컬럼 [,컬럼])
+        );
+
+
+    -- 2) 존재하는 테이블에 UNIQUE 제약 조건 설정
+     -------------------------------------------------------
+     -- 기본 형식
+       ALTER TABLE 테이블명 ADD [ CONSTRAINT 제약조건명 ]  UNIQUE (컬럼 [,컬럼]);
+
+
+    -- 3) UNIQUE 제약 조건 삭제
+     -------------------------------------------------------
+     -- 기본 형식
+       ALTER TABLE 테이블명 DROP UNIQUE (컬럼 [,컬럼]);
+       ALTER TABLE 테이블명 DROP CONSTRAINT 제약조건명;
+
+
+   -- ο NOT NULL 제약 조건
+     -- 1) 테이블 생성시 NOT NULL 제약 조건 설정
+       -----------------------------------------------------
+       -- 기본 형식
+        CREATE TABLE 테이블명 (
+           컬럼   데이터타입  NOT NULL
+                :
+          );
+
+
+     -- 2) 존재하는 테이블에 NOT NULL 제약 조건 설정
+       -----------------------------------------------------
+       -- 기본 형식
+         ALTER TABLE 테이블명 MODIFY 컬럼  NOT NULL;
+         ALTER TABLE 테이블명 ADD [ CONSTRAINT 제약조건이름 ] CHECK(컬럼 IS NOT NULL);
+
+
+     -- 3) NOT NULL 제약 조건 삭제
+       -----------------------------------------------------
+       -- 기본 형식
+         ALTER TABLE 테이블명 MODIFY 컬럼 NULL;
+         ALTER TABLE 테이블명 DROP CONSTRAINT 제약조건이름;
+
+
+   -- ο DEFAULT
+     -- 1) 테이블 생성시 DEFAULT 설정
+     -------------------------------------------------------
+     -- 기본 형식
+          CREATE TABLE 테이블명 (
+                    컬럼  데이터타입  DEFAULT 수식
+                                 :
+         );
+
+
+     -- 2) DEFAULT 확인
+         SELECT * FROM col WHERE tname='테이블명';
+              -- defaultval 컬럼
+         SELECT * FROM cols WHERE table_name='테이블명';
+         SELECT * FROM user_tab_columns WHERE table_name='테이블명';
+               -- data_default 컬럼
+
+     -- 3) DEFAULT 제거
+       ------------------------------------------------------
+       -- 기본 형식
+          ALTER TABLE 테이블명 MODIFY 컬럼 DEFAULT NULL;
+
+
+
+   -- ο CHECK 제약 조건
+    -- 1) 테이블 생성과 동시에 CHECK 제약 조건 설정
+      -- (1) 컬럼 레벨 방식의 CHECK 제약 설정
+       ------------------------------------------------------
+       -- 기본 형식
+           CREATE TABLE 테이블명 (
+                 컬럼  데이터타입  [ CONSTRAINT 제약조건명 ] CHECK ( 조건 )
+                                 :
+             );
+
+
+      -- (2) 테이블 레벨 방식의 CHECK 제약 설정
+       ------------------------------------------------------
+       -- 기본 형식
+           CREATE TABLE 테이블명 (
+                   컬럼  데이터타입,
+                               :
+                   [ CONSTRAINT 제약조건명 ] CHECK ( 조건 )
+          );
+
+
+    -- 2) 존재하는 테이블에 CHECK 제약 조건 설정
+     -------------------------------------------------------
+     -- 기본 형식
+       ALTER TABLE 테이블명
+                  ADD [ CONSTRAINT 제약조건명 ] CHECK ( 조건 );
+
+
+    -- 3) CHECK 제약 조건 삭제
+     -------------------------------------------------------
+     -- 기본 형식
+        ALTER TABLE 테이블명 DROP CONSTRAINT 제약조건명;
+
+
+
+   -- ο 참조 키(외래 키, FOREIGN KEY)
+     -- 1) 테이블 생성과 동시에 FOREIGN KEY 제약 조건 설정
+       -- (1) 컬럼 레벨 방식의 FOREIGN KEY 제약 설정
+        -----------------------------------------------------
+        -- 기본 형식
+           CREATE TABLE 테이블명 (
+                    컬럼  데이터타입  [ CONSTRAINT 제약조건명 ] 
+                                            REFERENCES 참조할테이블명(컬럼)
+                                            [ON DELETE { CASCADE | SET NULL } ]
+                                 :
+            );
+
+
+       -- (2) 테이블 레벨 방식의 FOREIGN KEY 제약 설정
+        -----------------------------------------------------
+        -- 기본 형식
+            CREATE TABLE table_name (
+                    컬럼  데이터타입,
+                               :
+                     [ CONSTRAINT 제약조건명 ] FOREIGN KEY ( 컬럼 [,컬럼] )
+                             REFERENCES  참조할테이블명(컬럼 [,컬럼])
+                             [ON DELETE { CASCADE | SET NULL } ]
+             );
+
+
+     -- 2) 존재하는 테이블에 FOREIGN KEY 제약 조건 설정
+       ------------------------------------------------------
+       -- 기본 형식
+          ALTER TABLE 테이블명
+              ADD [ CONSTRAINT 제약조건명 ] FOREIGN KEY( 컬럼 [,컬럼] )
+                     REFERENCES  참조할테이블명(컬럼 [,컬럼]);
+
+
+
+     -- 3) FOREIGN KEY 제약 조건 삭제
+      -------------------------------------------------------
+      -- 기본 형식
+        ALTER TABLE 테이블명 DROP CONSTRAINT 제약조건명;
+
+
+   -- ο 제약 조건 활성화 및 비활성화
+     -- 1) 존재하는 테이블의 제약 조건 비 활성화
+     -------------------------------------------------------
+     --
+      ALTER TABLE 테이블명 DISABLE CONSTRAINT 제약조건명 [ CASCADE ];
+
+
+     -- 2) 테이블의 제약 조건 활성화
+     -------------------------------------------------------
+     --
+       ALTER TABLE 테이블명 ENABLE CONSTRAINT 제약조건명;
+
+

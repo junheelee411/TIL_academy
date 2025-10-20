@@ -1,0 +1,28 @@
+-- ■ 고급 쿼리
+ -- ※ 계층형 질의(Hierarchical Query)
+   -- ο 계층적 쿼리
+     -------------------------------------------------------
+     --
+
+
+ -- ※ PIVOT과 UNPIVOT
+   -- ο PIVOT 절
+     -------------------------------------------------------
+     -- 예제
+      WITH temp_table AS (
+         SELECT 1 cnt, 1000 price FROM DUAL UNION ALL
+         SELECT 2 cnt, 1050 price FROM DUAL UNION ALL
+         SELECT 3 cnt, 2100 price FROM DUAL UNION ALL
+         SELECT 1 cnt, 5500 price FROM DUAL UNION ALL
+         SELECT 2 cnt, 7000 price FROM DUAL UNION ALL
+         SELECT 3 cnt, 7000 price FROM DUAL
+     )
+     SELECT cnt, SUM(price) price
+     FROM temp_table
+     GROUP BY cnt;
+
+
+   -- ο UNPIVOT 절
+     -------------------------------------------------------
+     --
+

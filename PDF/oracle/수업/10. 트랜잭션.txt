@@ -1,0 +1,28 @@
+-- ■ 트랜잭션
+ -- ※ 트랜잭션(Transaction)
+   -- ο COMMIT 과 ROLLBACK
+
+
+   -- ο 트랜잭션 관련 설정
+     -- 1) SET TRANSACTION : 다양한 트랜잭션 속성을 지정
+
+
+     -- 2) LOCK TABLE
+        -- : 현재 트랜잭션이 진행되고 있는 데이터에 대해 다른 다른 트랜잭션의 검색이나 변경을 막아 여러 트랜잭션이 동시에 같은 데이터를 사용하도록 설정
+
+
+
+   -- ο COMMIT이 되지 않는 상태 확인
+      -------------------------------------------------------
+      -- 관리자(sys 또는 system) 계정에서 확인
+        SELECT s.inst_id inst, s.sid||','||s.serial# sid, s.username,
+                    s.program, s.status, s.machine, s.service_name,
+                    '_SYSSMU'||t.xidusn||'$' rollname, --r.name rollname, 
+                    t.used_ublk, 
+                   ROUND(t.used_ublk * 8192 / 1024 / 1024, 2) used_bytes,
+                   s.prev_sql_id, s.sql_id
+        FROM gv$session s,
+                  --v$rollname r,
+                  gv$transaction t
+        WHERE s.saddr = t.ses_addr
+        ORDER BY used_ublk, machine;

@@ -1,0 +1,233 @@
+-- ■ 조인과 서브 쿼리
+ -- ※ 조인(joins)
+   -- ο INNER JOIN
+       -- 실습 테이블
+         -- 분류 테이블(분류코드, 분류명, 상위분류코드)
+            SELECT bcCode, bcSubject, pcCode FROM bclass;
+
+         -- 출판사 테이블(출판사번호, 출판사명, 전화번호)
+            SELECT pNum, pName, pTel FROM pub;
+
+         -- 책 테이블(서적코드, 서적명, 가격, 분류코드, 출판사번호)
+            SELECT bCode, bName, bPrice, bcCode, pNum FROM book;
+
+         -- 저자 테이블(저자번호, 서적코드, 저자명)
+            SELECT aNum, bCode, aName FROM author;
+
+         -- 고객 테이블(고객번호, 고객명, 전화번호)
+            SELECT cNum, cName, cTel FROM cus;
+
+         -- 회원 테이블(고객번호, 회원아이디, 회원패스워드, 이메일)
+            SELECT cNum, userId, userPwd, userEmail FROM member;
+    
+         -- 판매 테이블(판매번호, 판매일자, 고객번호)
+            SELECT sNum, sDate, cNum FROM sale;
+
+         -- 판매 상세 테이블(판매상세번호, 판매번호, 서적코드, 판매수량)
+            SELECT dNum, sNum, bCode, qty FROM dsale;
+
+     -- 1) EQUI JOIN
+        -- 형식 1
+           SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명 ....
+           FROM 테이블명1, 테이블명2
+           WHERE 테이블명1.컬럼명 = 테이블명2.컬럼명  [AND 조건]
+
+        -------------------------------------------------------
+        --
+        -- 판매현황 : 책코드(bCode), 책이름(bName), 책가격(bPrice), 출판사번호(pNum),
+                    출판사이름(pName), 판매일자(sDate), 구매고객번호(cNum),
+                    구매고객이름(cName), 판매수량(qty), 금액(bPrice * qty)
+
+        -------------------------------------------------------
+        --
+
+
+        -- 형식 2
+           SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명 ....
+           FROM 테이블명1
+           [ INNER ] JOIN 테이블명2 ON 테이블명1.컬럼명 = 테이블명2.컬럼명
+
+        -------------------------------------------------------
+        --
+
+
+        -- 형식 3
+           SELECT 컬럼명, 컬럼명
+           FROM 테이블명1
+           JOIN 테이블명2 USING (컬럼명1)
+           JOIN 테이블명3 USING (컬럼명2);
+
+        -------------------------------------------------------
+        --
+
+
+     -- 2) NATURAL JOIN
+        -- 형식
+           SELECT 컬럼명, 컬럼명 ....
+           FROM 테이블명1
+           NATURAL JOIN  테이블명2
+
+        -------------------------------------------------------
+        --
+
+
+     -- 3) CROSS JOIN
+        -------------------------------------------------------
+        --
+
+
+     -- 4) SELF JOIN
+        -------------------------------------------------------
+        --
+
+
+     -- 5) NON-EQUI JOIN
+        -- 형식
+            SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명 ....
+            FROM 테이블명1, 테이블명2..
+            WHERE (non-equi-join 조건)
+
+        -------------------------------------------------------
+        --
+
+
+   -- ο OUTER JOIN
+     -- 1) LEFT OUTER JOIN
+       -- 형식1
+           SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+           FROM 테이블명1, 테이블명2
+           WHERE 테이블명1.컬럼명=테이블명2.컬럼명(+);
+
+       -- 형식2
+          SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+          FROM 테이블명1
+          LEFT OUTER JOIN 테이블명2 ON 테이블명1.컬럼명=테이블명2.컬럼명;
+
+        -------------------------------------------------------
+        --
+
+
+     -- 2) RIGHT OUTER JOIN
+       -- 형식1
+           SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+           FROM 테이블명1, 테이블명2
+           WHERE 테이블명1.컬럼명(+)=테이블명2.컬럼명;
+
+       -- 형식2
+          SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+          FROM 테이블명1
+          RIGHT OUTER JOIN 테이블명2 ON 테이블명1.컬럼명=테이블명2.컬럼명;
+
+        -------------------------------------------------------
+        --
+
+
+     -- 3) FULL OUTER JOIN
+       -- 형식
+          SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+          FROM 테이블명1 FULL OUTER JOIN 테이블명2 ON 테이블명1.컬럼명=테이블명2.컬럼명;
+
+        -------------------------------------------------------
+        --
+
+
+   -- ο UPDATE JOIN VIEW 이용하여 빠른 업데이트(서브쿼리 보다 훨씬 빠르다.)
+      -- 테이블을 조인하여 UPDATE
+      -- tb_a 테이블의 내용(new_addr1, new_addr2)을 tb_b에 존재하는 내용(n_addr1, n_addr2)으로 수정
+      -- 조인 조건의 컬럼이 UNIQUE 속성이어야 가능하며(관계가 1:1) 그렇지 않으면 ORA-01779 오류가 발생한다.
+
+     -------------------------------------------------------
+     -- 예제
+        CREATE TABLE tb_a (
+             num  NUMBER PRIMARY KEY
+            ,addr1  VARCHAR2(255)
+            ,addr2 VARCHAR2(255)
+            ,new_addr1 VARCHAR2(255)
+            ,new_addr2 VARCHAR2(255)
+       );
+
+      CREATE TABLE tb_b (
+           num  NUMBER PRIMARY KEY
+          ,n_addr1 VARCHAR2(255)
+          ,n_addr2 VARCHAR2(255)
+      );
+
+      INSERT INTO tb_a VALUES(1,'서울1-1', '서울1-2','도로1-1', '도로1-2');
+      INSERT INTO tb_a VALUES(2,'서울2-1', '서울2-2','도로2-1', '도로2-2');
+      INSERT INTO tb_a VALUES(3,'서울3-1', '서울3-2','도로3-1', '도로3-2');
+      INSERT INTO tb_a VALUES(4,'서울4-1', '서울4-2','도로4-1', '도로4-2');
+      INSERT INTO tb_a VALUES(5,'서울5-1', '서울5-2','도로5-1', '도로5-2');
+
+      INSERT INTO tb_b VALUES(1,'세종1-1', '세종1-2');
+      INSERT INTO tb_b VALUES(3,'세종3-1', '세종3-2');
+      INSERT INTO tb_b VALUES(5,'세종5-1', '세종5-2');
+      COMMIT;
+
+     -------------------------------------------------------
+     --
+
+
+ -- ※ subquery
+   -- ο WITH
+     -------------------------------------------------------
+     --
+
+
+   -- ο 단일 행 서브 쿼리
+     -------------------------------------------------------
+     --
+
+
+   -- ο 다중 행 서브 쿼리
+      -- IN
+       -------------------------------------------------------
+       --
+
+
+      -- ANY(SOME) 
+       -------------------------------------------------------
+       --
+
+
+      -- ALL
+       -------------------------------------------------------
+       --
+
+
+      -- EXISTS 
+       -------------------------------------------------------
+       --
+
+
+   -- ο 상호 연관 서브 쿼리(correlated subquery, 상관 하위 부질의)
+     -------------------------------------------------------
+     --
+
+
+        -------------------------------------------------------
+        -- 학점 구하기
+        CREATE TABLE grade_table
+        (
+              grade  VARCHAR2(10) PRIMARY KEY
+              ,score NUMBER(3)
+        );
+        INSERT INTO grade_table(grade, score) VALUES ('A', 90);
+        INSERT INTO grade_table(grade, score) VALUES ('B', 80);
+        INSERT INTO grade_table(grade, score) VALUES ('C', 70);
+        INSERT INTO grade_table(grade, score) VALUES ('D', 60);
+        INSERT INTO grade_table(grade, score) VALUES ('F', 0);
+        COMMIT;
+
+        CREATE TABLE score_table
+        (
+              hak  VARCHAR2(30) PRIMARY KEY
+              ,score NUMBER(3) NOT NULL
+        );
+
+       INSERT INTO score_table(hak, score) VALUES ('1', 75);
+       INSERT INTO score_table(hak, score) VALUES ('2', 50);
+       INSERT INTO score_table(hak, score) VALUES ('3', 65);
+       INSERT INTO score_table(hak, score) VALUES ('4', 80);
+       INSERT INTO score_table(hak, score) VALUES ('5', 65);
+       COMMIT;
+
