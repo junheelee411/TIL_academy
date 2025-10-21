@@ -1,0 +1,35 @@
+-- -----------------------------------------------------
+-- 계정 생성 및 삭제 등은 관리자 계정에서만 가능 : SYS 또는 SYSTEM 계정만 가능
+
+-- CDB 에서 11g 방식으로 계정 생성 및 삭제가 가능하도록 설정 : 관리자 계정
+    ALTER SESSION SET "_ORACLE_SCRIPT" = true;
+
+
+-- -----------------------------------------------------
+-- 계정 추가 및 권한 설정 : 관리자 계정에서 실행
+    ALTER SESSION SET "_ORACLE_SCRIPT" = true;
+
+    GRANT  CONNECT, RESOURCE, UNLIMITED TABLESPACE TO 사용자이름  IDENTIFIED BY  "패스워드";
+    ALTER  USER  사용자이름   DEFAULT  TABLESPACE  USERS;
+    ALTER  USER  사용자이름   TEMPORARY  TABLESPACE  TEMP;
+
+-- 모든 사용자 확인 : 관리자 계정에서 실행
+   SELECT * FROM all_users;
+
+
+-- -----------------------------------------------------
+-- 계정 삭제 : 관리자 계정에서 실행
+   ALTER SESSION SET "_ORACLE_SCRIPT" = true;
+
+   DROP USER 사용자명 CASCADE; 
+
+
+-- -----------------------------------------------------
+-- 사용자 패스워드 변경 : 자기자신 또는 관리자(SYS, SYSTEM) 계정에서 변경가능
+ALTER  USER  사용자명  IDENTIFIED  BY  "패스워드";
+
+
+-- -----------------------------------------------------
+-- LOCK이 설정된 경우 LOCK 해제(ORA-2800)  : 관리자 계정에서 실행
+ALTER  USER  사용자명  ACCOUNT  UNLOCK;
+

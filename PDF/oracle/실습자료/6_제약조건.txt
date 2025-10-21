@@ -1,0 +1,181 @@
+-- ------------------------------------------------
+-- 제약 조건
+   P : PRIMARY KEY
+   U : UNIQUE
+   C : NOT NULL, CHECK
+   R : FOREIGN KEY
+
+
+-- ------------------------------------------------
+-- 제약 조건 확인(어떤 컬럼에 제약조건이 부여되었는지 확인은 불가)
+    SELECT * FROM user_constraints WHERE table_name = UPPER('테이블명'); 
+
+-- 컬럼에 부여된 제약조건 정보 확인(제약 조건의 종류는 확인 불가능)
+    SELECT * FROM user_cons_columns WHERE table_name = UPPER('테이블명'); 
+
+-- 제약조건 및 컬럼 확인
+    SELECT u1.table_name, column_name, constraint_type, u1.constraint_name, search_condition 
+    FROM user_constraints u1
+    JOIN user_cons_columns u2  ON u1.constraint_name = u2.constraint_name
+    WHERE u1.table_name = UPPER('테이블명');
+
+-- 『테이블명』을 참조하는 모든 테이블 목록 출력(자식 테이블 목록 출력)
+    SELECT fk.owner, fk.constraint_name , fk.table_name 
+    FROM all_constraints fk, all_constraints pk 
+    WHERE fk.r_constraint_name = pk.constraint_name 
+               AND fk.constraint_type = 'R'
+               AND pk.table_name = UPPER('테이블명')
+    ORDER BY fk.table_name;
+ 
+-- 『테이블명』의 부모 테이블 목록 및 부모 컬럼 목록 출력
+      --  부모 2개 이상으로 기본키를 만든 경우 여러번 출력 됨
+     SELECT fk.constraint_name, fk.table_name child_table, fc.column_name child_column,
+                    pk.table_name parent_table, pc.column_name parent_column
+     FROM all_constraints fk, all_constraints pk, all_cons_columns fc, all_cons_columns pc
+     WHERE fk.r_constraint_name = pk.constraint_name
+                   AND fk.constraint_name = fc.constraint_name
+                   AND pk.constraint_name = pc.constraint_name
+                   AND fk.constraint_type = 'R'
+                   AND pk.constraint_type = 'P'
+                   AND fk.table_name = UPPER('테이블명');
+
+
+-- ------------------------------------------------
+-- 기본키(PRIMARY KEY)
+    : 릴레이션의 속성 중 튜플을 유일하게 식별(중복 허용 안함).
+    : 하나의 테이블에 하나만 작성 가능. 
+    : null 허용 안함.
+    : 두개이상의 컬럼으로 작성가능
+
+-- ORA-00001 : 유일성 제약조건에 위배됩니다.(PRIMARY KEY 제약 위반)
+
+-- 테이블 작성시 컬럼 레벨 기본키 부여
+    CREATE TABLE 테이블명 (
+        컬럼명 자료형(크기) PRIMARY KEY,
+        컬럼명 자료형(크기),
+        컬럼명 자료형(크기)
+    );
+
+-- 테이블 작성시 테이블 레벨 기본키 부여
+    CREATE TABLE 테이블명 (
+        컬럼명1 자료형(크기),
+        컬럼명2 자료형(크기),
+        [ CONSTRAINT 제약조건이름 ] PRIMARY KEY( 컬럼명 [,컬럼명] )
+    );
+
+-- 이미 존재하는 테이블에 기본키 추가
+   ALTER TABLE 테이블명 ADD [CONSTRAINT 제약조건이름] PRIMARY KEY(컬럼 [, 컬럼]);
+
+ -- 기본키 제거
+    ALTER TABLE 테이블명 DROP PRIMARY KEY;
+    ALTER TABLE 테이블명 DROP CONSTRAINT 제약조건이름;
+ 
+
+-- ------------------------------------------------
+-- 참조키(외래키)
+   : 테이블 간의 데이터의 일관성을 보장하기 위한 제약조건
+   : 부모테이블의 기본키(PRIMARY KEY), UNIQUE 컬럼만 참조 가능
+
+-- ON DELETE CASCADE : 부모 테이블의 부모 데이터가 지워지면 자식 테이블의 자식 데이터도 지워짐
+-- ORA-02291 : 무결성 제약조건이 위배되었습니다. 부모 키가 없습니다.
+
+-- 테이블 작성시 참조키 부여
+    CREATE TABLE 테이블명 (
+        컬럼명1 자료형(크기),
+        컬럼명2 자료형(크기),
+        [ CONSTRAINT 제약조건이름 ] PRIMARY KEY( 컬럼명 [,컬럼명] ),
+        [ CONSTRAINT 제약조건이름 ] FOREIGN KEY( 컬럼명 [,컬럼명] )
+               REFERENCES 참조할테이블( 컬럼명 [,컬럼명] )
+               [ ON DELETE CASCADE ]
+    );
+
+
+-- 존재하는 테이블에 참조키 추가
+   ALTER TABLE 테이블명 ADD
+      [CONSTRAINT 제약조건명] FOREIGN KEY(컬럼명[, 컬럼명])
+                 REFERENCES 참조할테이블명(컬럼명[, 컬럼명]);
+
+-- 참조키 제거
+    ALTER TABLE 테이블명 DROP CONSTRAINT 제약조건이름;
+
+
+-- ------------------------------------------------
+-- UNIQUE
+    : 릴레이션에 저장되는 튜플(tuple)의 유일성을 보장하기 위한 제약조건.
+    : 중복을 허용하지 않음.
+    : NULL을 허용 한 경우 NULL은 중복 가능
+    : 여러개 지정가능하며, 두개이상의 컬럼으로 작성가능
+
+-- ORA-00001 : 유일성 제약조건에 위배됩니다.
+
+-- 테이블 작성시 UNIQUE 부여
+   CREATE TABLE 테이블명 (
+        컬럼명1 자료형(크기),
+        컬럼명2 자료형(크기),
+        [ CONSTRAINT 제약조건이름 ] PRIMARY KEY(컬럼명 [ ,컬럼명 ]),
+        [ CONSTRAINT 제약조건이름 ] UNIQUE(컬럼명 [ ,컬럼명 ])
+    );
+
+
+-- UNIQUE 제약 조건 삭제
+    ALTER TABLE table_name DROP UNIQUE (column [, column ]...);
+          또는
+    ALTER TABLE table_name DROP CONSTRAINT constraint_name;
+
+
+-- ------------------------------------------------
+-- NOT NULL
+   : 행의 컬럼에 값이 없으면 컬럼은 NULL 이거나 NULL을 포함한다고 한다.
+   : 실제 값을 알 수 없거나 값이 의미가 없는 경우 NULL 을 사용
+   : 길이가 0 인 문자 값('')은 NULL로 처리
+
+-- ORA-01400 : NOT NULL 제약 위반
+
+-- 테이블 생성시 NOT NULL 제약 조건 설정
+    CREATE TABLE 테이블명 (
+            컬럼명  타입  NOT NULL
+                      :
+     );
+
+-- 존재하는 테이블에 NOT NULL 제약 조건 설정
+    ALTER TABLE  테이블명  MODIFY 컬럼명 NOT NULL;
+    ALTER TABLE  테이블명  MODIFY (컬럼명 타입 NOT NULL);
+    ALTER TABLE  테이블명  ADD [ CONSTRAINT constraint_name ] CHECK(컬럼명 IS NOT NULL);
+
+ -- NOT NULL 제거
+    ALTER TABLE 테이블명 MODIFY 컬러명 NULL;
+    ALTER TABLE 테이블명 DROP CONSTRAINT 제약조건이름;
+
+
+-- ------------------------------------------------
+-- 기타 제약조건 제거
+    ALTER TABLE 테이블명 DROP CONSTRAINT 제약조건이름;
+
+
+-- ------------------------------------------------
+-- 제약조건 비활성화
+    ALTER  TABLE  테이블명  DISABLE  CONSTRAINT 제약조건이름 CASCADE;
+
+-- 제약조건 활성화
+    ALTER  TABLE  테이블명  ENABLE  CONSTRAINT 제약조건이름;
+
+-- 제약조건 비활성화 확인(status 컬럼 : DISABLE)
+    SELECT * FROM user_constraints WHERE table_name = '테이블명';
+
+
+-- ------------------------------------------------
+-- DEFAULT : 해당 컬럼의 기본 값을 설정
+-- DEFAULT 추가
+    CREATE TABLE table_name (
+            column  datatype  DEFAULT expr
+     );
+
+-- 존재하는 테이블에 DEFAULT 추가
+   ALTER  TABLE   table_name  MODIFY  column DEFAULT expr;
+
+-- DEFAULT 제거
+    ALTER TABLE table_name MODIFY column DEFAULT NULL;
+
+-- DEFAULT 확인
+    SELECT  * FROM cols;
+
