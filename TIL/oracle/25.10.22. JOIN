@@ -1,1 +1,579 @@
 25.10.22. WED
+
+-- ■ 조인과 서브 쿼리
+ -- ※ 조인(joins)
+   -- ο INNER JOIN
+       -- 실습 테이블
+         -- 분류 테이블(분류코드, 분류명, 상위분류코드)
+            SELECT bcCode, bcSubject, pcCode FROM bclass;
+
+         -- 출판사 테이블(출판사번호, 출판사명, 전화번호)
+            SELECT pNum, pName, pTel FROM pub;
+
+         -- 책 테이블(서적코드, 서적명, 가격, 분류코드, 출판사번호)
+            SELECT bCode, bName, bPrice, bcCode, pNum FROM book;
+
+         -- 저자 테이블(저자번호, 서적코드, 저자명)
+            SELECT aNum, bCode, aName FROM author;
+
+         -- 고객 테이블(고객번호, 고객명, 전화번호)
+            SELECT cNum, cName, cTel FROM cus;
+
+         -- 회원 테이블(고객번호, 회원아이디, 회원패스워드, 이메일)
+            SELECT cNum, userId, userPwd, userEmail FROM member;
+    
+         -- 판매 테이블(판매번호, 판매일자, 고객번호)
+            SELECT sNum, sDate, cNum FROM sale;
+
+         -- 판매 상세 테이블(판매상세번호, 판매번호, 서적코드, 판매수량)
+            SELECT dNum, sNum, bCode, qty FROM dsale;
+
+     -- 1) EQUI JOIN (조건을 만족하는 컬럼만 가져옴)
+        -- 형식 1
+           SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명 ....
+           FROM 테이블명1, 테이블명2
+           WHERE 테이블명1.컬럼명 = 테이블명2.컬럼명  [AND 조건]
+
+           SELECT * FROM book;
+           SELECT * FROM pub;
+
+           --bCode,bName,bPrice,pNum,pName
+
+           --book:bCode,bName,bPrice,pNum
+           --pub:pNum,pName
+           --dsale:sNum,bCode,qty
+           --sale:sNum,sDate,cNum
+           --cus:cNum,cName
+
+           SELECT bCode,bName,bPrice,pNum,pName
+           FROM book,pub
+           WHERE book.pNum = pub.pNum;
+           --error : ORA-00918: 열의 정의가 애매합니다
+
+
+           SELECT b.bCode,bName,bPrice,b.pNum,pName,sDate,s.cNum,cName,qty,bPrice*qty
+           FROM book b, pub p, dsale d, sale s, cus c
+           WHERE b.pNum=p.pNum AND 
+            b.bCode = d.bCode AND 
+            d.sNum = s.sNum AND 
+            s.cNum = c.cNum;
+
+        -------------------------------------------------------
+        --
+        -- 판매현황 : 책코드(bCode), 책이름(bName), 책가격(bPrice), 출판사번호(pNum),
+                    --출판사이름(pName), 판매일자(sDate), 구매고객번호(cNum),
+                   -- 구매고객이름(cName), 판매수량(qty), 금액(bPrice * qty)
+
+           --book:bCode,bName,bPrice,pNum
+           --pub:pNum,pName
+           --dsale:sNum,bCode,qty
+           --sale:sNum,sDate,cNum
+           --cus:cNum,cName
+        -------------------------------------------------------
+        --
+
+
+        -- 형식 2
+           SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명 ....
+           FROM 테이블명1
+           [ INNER ] JOIN 테이블명2 ON 테이블명1.컬럼명 = 테이블명2.컬럼명1
+
+           SELECT b.bCode,b.bName,b.bPrice,b.pNum,p.pName,s.sDate,s.cNum,c.cName,d.qty,b.bPrice * d.qty
+           FROM book b
+           JOIN pub p ON b.pNum = p.pNum
+           JOIN dsale d ON b.bCode = d.bCode
+           JOIN sale s ON d.sNum = s.sNum
+           JOIN cus c ON s.cNum = c.cNum;
+
+        -------------------------------------------------------
+        --
+
+        -- 형식 3 --속도 느리니 형식1 또는 형식2 사용할 것
+           SELECT 컬럼명, 컬럼명
+           FROM 테이블명1
+           JOIN 테이블명2 USING (컬럼명1)
+           JOIN 테이블명3 USING (컬럼명2);
+
+           SELECT bCode,bName,bPrice,pNum,pName,sDate,cNum,cName,qty,bPrice * qty
+           FROM book
+           JOIN pub USING (pNUM)
+           JOIN dsale USING (bCode)
+           JOIN sale USING (sNUM)
+           JOIN cus USING (cNUM);
+                
+        -------------------------------------------------------
+        --
+
+        --bCode,bName,bPrice,sDate,cNUM,qty,qty*bPrice 금액
+        --cNum이 '서울서점'인 레코드만 출력
+
+        SELECT b.bCode,b.bName,b.bPrice,s.sDate,s.cNum,d.qty,b.bPrice * d.qty 금액
+           FROM book b
+           JOIN pub p ON b.pNum = p.pNum
+           JOIN dsale d ON b.bCode = d.bCode
+           JOIN sale s ON d.sNum = s.sNum
+           JOIN cus c ON s.cNum = c.cNum
+           WHERE cName='서울서점';
+
+
+         SELECT b.bcode,b.bName,b.bPrice,s.sDate,s.cNUM,qty,(d.qty*b.bPrice) 금액
+         FROM book B 
+         JOIN dsale d ON b.bcode = d.bcode
+         JOIN sale s ON d.sNum = s.sNUM
+         JOIN cus c ON s.cNum=c.cNum
+         WHERE cName='서울서점';
+        
+        --판매된 bCode,bName,판매권수의 합 출력
+        --dSale테이블에 책 판매권수 존재
+        
+         SELECT b.bCode,b.bName,sum(d.qty) 판매권수합
+           FROM book b
+           JOIN dsale d ON b.bCode = d.bCode
+           GROUP BY b.bcode, b.bName;
+
+        --판매된 bCode,bName,판매권수합,판매금액합 : 책코드오름차순
+        
+         SELECT b.bCode,b.bName,sum(d.qty) 판매권수합, SUM(qty*bPrice)
+           FROM book b
+           JOIN dsale d ON b.bCode = d.bCode
+           GROUP BY b.bcode, b.bName
+           ORDER BY bcode;
+        
+        --판매된 bCode,bName,판매권수합 : 판매권수합이 80권 이상만 출력
+         SELECT bCode,bName, 판매권수합
+           FROM book, 
+           (SELECT sum(d.qty) 판매권수합 FROM book b 
+           JOIN pub p ON b.pNum = p.pNum
+           JOIN dsale d ON b.bCode = d.bCode
+           JOIN sale s ON d.sNum = s.sNum
+           JOIN cus c ON s.cNum = c.cNum
+           GROUP BY b.bcode, b.bName
+            ) 
+            WHERE 판매권수합>=80;
+
+        --판매된 bCode,bName,판매권수합 : 중복 배제
+            
+         SELECT DISTINCT b.bCode,b.bName,sum(d.qty) 판매권수합
+           FROM book b
+           JOIN pub p ON b.pNum = p.pNum
+           JOIN dsale d ON b.bCode = d.bCode
+           JOIN sale s ON d.sNum = s.sNum
+           JOIN cus c ON s.cNum = c.cNum
+           GROUP BY b.bcode, b.bName;
+
+        --판매된 책 중 판매권수의 합이 가장 큰 bCode,bName 출력
+        SELECT b.bCode, b.bName, SUM(d.qty) AS total_qty
+         FROM book b
+         JOIN dsale d ON b.bCode = d.bCode
+         GROUP BY b.bCode, b.bName
+         ORDER BY total_qty DESC;
+
+         --판매된 책 중 판매권수의 합이 1,2,3등인 책의 bCode,bName 출력
+         SELECT bCode, bName, total_qty
+         FROM (
+            SELECT b.bCode, b.bName, SUM(d.qty) AS total_qty,
+                  RANK() OVER (ORDER BY SUM(d.qty) DESC) AS 순위
+            FROM book b
+            JOIN dsale d ON b.bCode = d.bCode
+            GROUP BY b.bCode, b.bName
+         )
+         WHERE 순위 = 1;
+
+        --올해의 판매현황 출력
+        -- 판매현황 : 책코드(bCode), 책이름(bName), 책가격(bPrice), 출판사번호(pNum),
+                   --출판사이름(pName), 판매일자(sDate), 구매고객번호(cNum),
+                   -- 구매고객이름(cName), 판매수량(qty), 금액(bPrice * qty)
+
+                  SELECT b.bCode, b.bName, b.bPrice, b.pNum, p.pName, s.sDate, s.cNum, c.cName, d.qty, b.bPrice * d.qty AS 금액
+                  FROM book b
+                  JOIN pub p ON b.pNum = p.pNum
+                  JOIN dsale d ON b.bCode = d.bCode
+                  JOIN sale s ON d.sNum = s.sNum
+                  JOIN cus c ON s.cNum = c.cNum
+                  WHERE TO_CHAR(s.sDate, 'YYYY') = TO_CHAR(SYSDATE, 'YYYY');
+
+        --작년의 판매 현황 출력
+
+                  SELECT b.bCode, b.bName, b.bPrice, b.pNum, p.pName, s.sDate, s.cNum, c.cName, d.qty, b.bPrice * d.qty AS 금액
+                  FROM book b
+                  JOIN pub p ON b.pNum = p.pNum
+                  JOIN dsale d ON b.bCode = d.bCode
+                  JOIN sale s ON d.sNum = s.sNum
+                  JOIN cus c ON s.cNum = c.cNum
+                  WHERE TO_CHAR(s.sDate, 'YYYY') = TO_CHAR(SYSDATE, 'YYYY')-1;
+            
+        --고객별 판매금액 합 출력
+        --cNum,cName,년도,판매금액합 : 고객번호 오름차순, 년도 오름차순
+
+         SELECT s.cNum, c.cName, TO_CHAR(s.sDate, 'YYYY') 년도, SUM(b.bPrice * d.qty) AS 금액합
+         FROM book b
+         JOIN dsale d ON b.bCode = d.bCode
+         JOIN sale s ON d.sNum = s.sNum
+         JOIN cus c ON s.cNum = c.cNum
+         GROUP BY s.cNum, c.cName, TO_CHAR(s.sDate, 'YYYY')
+         ORDER BY s.cNum, 년도;
+
+         --고객의 작년과 올해의 판매금액현황 출력
+        --cNum,cName,년도,판매금액합 : 고객번호 오름차순, 년도 오름차순
+
+         SELECT s.cNum, c.cName, TO_CHAR(s.sDate, 'YYYY') 년도, SUM(b.bPrice * d.qty) AS 금액합
+         FROM book b
+         JOIN dsale d ON b.bCode = d.bCode
+         JOIN sale s ON d.sNum = s.sNum
+         JOIN cus c ON s.cNum = c.cNum
+         where to_char(sysdate,'YYYY')-TO_CHAR(sDate,'YYYY')<=1
+         GROUP BY s.cNum, c.cName, TO_CHAR(s.sDate, 'YYYY')
+         ORDER BY s.cNum, 년도;
+
+        --고객의 이번달 판매금액 현황 출력
+
+                  SELECT s.cNum, c.cName, TO_CHAR(sDate,'YYYYMM')년월, sum(b.bPrice * d.qty) 금액합
+                  FROM book b
+                  JOIN dsale d ON b.bCode = d.bCode
+                  JOIN sale s ON d.sNum = s.sNum
+                  JOIN cus c ON s.cNum = c.cNum
+                  WHERE TO_CHAR(s.sDate, 'YYYYMM') = TO_CHAR(SYSDATE, 'YYYYMM')
+                  GROUP BY s.cNum, cName,to_char(sDate,'YYYYMM')
+                  ORDER BY cNum 년도;
+
+                  
+        --작년 누적 판매금액이 가장 많은 고객 출력
+         WITH tb AS (
+         SELECT 
+            s.cNum,
+            SUM(b.bPrice * d.qty) AS total_amount
+         FROM book b
+         JOIN dsale d ON b.bCode = d.bCode
+         JOIN sale s ON d.sNum = s.sNum
+         WHERE EXTRACT(YEAR FROM s.sDate) = EXTRACT(YEAR FROM SYSDATE) - 1
+         GROUP BY s.cNum
+         ),
+         TopCustomer AS (
+         SELECT cNum
+         FROM tb
+         WHERE total_amount = (SELECT MAX(total_amount) FROM tb)
+         )
+         SELECT 
+         s.cNum, 
+         c.cName, 
+         TO_CHAR(s.sDate,'YYYYMM') AS 년월, 
+         SUM(b.bPrice * d.qty) AS 월별판매금액
+         FROM book b
+         JOIN dsale d ON b.bCode = d.bCode
+         JOIN sale s ON d.sNum = s.sNum
+         JOIN cus c ON s.cNum = c.cNum
+         WHERE EXTRACT(YEAR FROM s.sDate) = EXTRACT(YEAR FROM SYSDATE) - 1
+         AND s.cNum IN (SELECT cNum FROM TopCustomer)
+         GROUP BY s.cNum, c.cName, TO_CHAR(s.sDate,'YYYYMM')
+         ORDER BY s.cNum, 년월;
+
+        -------------------------------------------------------
+        --
+
+        -- 2) NATURAL JOIN -- 실무에서 쓸 일 없음(부하 커서)
+        -- 형식 (별명 x 똑같은 이름이면 조인됨)
+           SELECT 컬럼명, 컬럼명 ....
+           FROM 테이블명1
+           NATURAL JOIN  테이블명2
+
+           SELECT bCode,bName,bPrice,pNum,pName,sDate,cNum,cName,qty,bPrice*qty amt
+           FROM book
+           NATURAL JOIN pub
+           NATURAL JOIN dsale
+           NATURAL JOIN sale
+           NATURAL JOIN cus;
+
+        -------------------------------------------------------
+        --
+
+
+     -- 3) CROSS JOIN : 카디션 곱
+        -------------------------------------------------------
+        --
+
+        SELECT * FROM pub;
+        SELECT * FROM book;
+
+        SELECT p.pNum,pName,bCode,bName
+        FROM pub p
+        CROSS JOIN book b;
+
+
+
+
+
+     -- 4) SELF JOIN - 같은 테이블을 EQUI JOIN
+        -------------------------------------------------------
+        --대분류 중분류
+        SELECT * FROM bclass;
+
+        SELECT b1.bcCode, b1.bcSubject,b1.pcCode,
+        b2.bcCode,b2.bcSubject,b2.pcCode
+        FROM bclass b1 
+         JOIN bclass b2 ON b1.bcCode=b2.pcCode;
+
+      -- 저자가 2명 이상인 경우 
+         SELECT * FROM author;
+
+         SELECT a1.bCode, a1.aname,a2.aname
+         FROM author a1
+         JOIN author a2 ON a1.bcode=a2.bcode
+         ORDER BY a1.bCode;
+
+         SELECT a1.bCode, a1.aname,a2.aname
+         FROM author a1
+         JOIN author a2 ON a1.bcode=a2.bcode
+         WHERE a1.aname>a2.aname
+         ORDER BY a1.bCode;
+
+         --저자가 2명 이상 책 코드, 책 이름
+         SELECT bCode, bName
+         FROM book 
+         WHERE bCode IN(
+            SELECT a1.bcode
+            FROM author a1
+            JOIN author a2 ON a1.bcode = a2.bcode
+            where a1.aName > a2.aname
+         );
+
+         SELECT bCode, bName
+         FROM book 
+         WHERE bCode IN(
+            SELECT a1.bcode
+            FROM author a1
+            JOIN author a2 ON a1.bcode = a2.bcode AND a1.aName > a2.aname
+         );
+
+
+
+         
+     -- 5) NON-EQUI JOIN
+        -- 형식
+            SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명 ....
+            FROM 테이블명1, 테이블명2..
+            WHERE (non-equi-join 조건)
+
+        -------------------------------------------------------
+        --EQUI JOIN
+        SELECT s.sNum,bCode,cNum,sDate,qty
+        FROM sale s
+        JOIN dsale d ON s.sNUm=d.snum;
+
+        --NON-EQUI JOIN
+        SELECT s.sNum,bCode,cNum,sDate,qty
+        FROM sale s
+        JOIN dsale d ON s.sNUm=d.snum;
+
+
+
+   -- ο OUTER JOIN(이큐와 함께 가장 많이 쓰임)
+     -- 1) LEFT OUTER JOIN
+       -- 형식1
+           SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+           FROM 테이블명1, 테이블명2
+           WHERE 테이블명1.컬럼명=테이블명2.컬럼명(+);
+
+       -- 형식2
+          SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+          FROM 테이블명1
+          LEFT OUTER JOIN 테이블명2 ON 테이블명1.컬럼명=테이블명2.컬럼명;
+
+        -------------------------------------------------------
+        --book(bCode,bName),dsale(bCode,sNum,qty)
+      
+        --EQUI JOIN
+        SELECT b.bcode,bName,sNum,qty
+        FROM book b, dsale D
+        WHERE b.bcode=d.bcode;
+
+        --LEFT OUTER JOIN 1
+        SELECT b.bcode, b.bName, d.sNum, d.qty
+         FROM book b, d
+         WHERE b.bcode = d.bcode(+);
+
+
+        --LEFT OUTER JOIN 2
+        SELECT b.bcode, b.bName, d.sNum, d.qty
+        FROM book b
+        LEFT OUTER JOIN dsale d ON b.bCode = d.bCode;
+
+        --bcode,bname,sNum,sDate,qty
+        --판매되지 않은 책 목록도 출력
+        SELECT UNIQUE b.bcode,b.bName, d.sNum, d.qty
+        FROM book b,dsale d;
+
+        SELECT b.bcode,bname,d.snum,sDate,qty
+        FROM book b
+        LEFT OUTER JOIN dsale d ON b.bcode = d.bcode
+        LEFT OUTER JOIN sale s ON d.sNum=s.snum;
+
+        --bCode,bName
+        --판매된 책 목록만 출력
+        SELECT UNIQUE b.bcode,b.bName
+        FROM book b
+        JOIN dsale d on b.bcode=d.bcode;
+
+        SELECT bCode,bName
+        FROM book
+        WHERE bcode IN (SELECT DISTINCT bCode FROM dsale);
+
+        --bCode,bName
+        --판매가 한 번도 되지 않은 책 목록 출력
+
+         SELECT b.bcode,b.bName
+        FROM book b
+        LEFT OUTER JOIN dsale d ON b.bCode=d.bcode
+        WHERE d.bcode IS null;
+
+     -- 2) RIGHT OUTER JOIN
+       -- 형식1
+           SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+           FROM 테이블명1, 테이블명2
+           WHERE 테이블명1.컬럼명(+)=테이블명2.컬럼명;
+
+
+
+       -- 형식2
+          SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+          FROM 테이블명1
+          RIGHT OUTER JOIN 테이블명2 ON 테이블명1.컬럼명=테이블명2.컬럼명;
+
+          SELECT b.bcode,bName,sNum,qty
+          FROM dsale d, book b
+          WHERE d.bcode(+)=b.bcode;
+
+          SELECT b.bcode,bName,sNum,qty
+          FROM dsale d
+          RIGHT OUTER JOIN book b ON d.bcode=b.bcode;
+
+        -------------------------------------------------------
+        --
+
+
+     -- 3) FULL OUTER JOIN 합집합-교집합
+       -- 형식
+          SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+          FROM 테이블명1 FULL OUTER JOIN 테이블명2 ON 테이블명1.컬럼명=테이블명2.컬럼명;
+
+          SELECT sNum,sDate,s.cNUM,m.cNUM,userId
+          FROM sale s
+          LEFT OUTER JOIN member m ON s.cNUM=m.cNUM;
+
+          SELECT sNum,sDate,s.cNUM,m.cNUM,userIdSELECT sNum,sDate,s.cNUM,m.cNUM,userId
+          FROM sale s
+          LEFT OUTER JOIN member m ON s.cNUM=m.cNUM;
+
+
+       --  cName이 NULL인 데이터가 없음
+
+         SELECT sNUm,sDate,s.cNum,m.cNUM,cName,userId
+         FROM cos c
+         full Outer join member m ON c.cNum - c.dNumM.cNum
+        FULL OUTER JOIN SALE S on C.CnUM=S.CnUN;                                                                                                 
+
+         SELECT s.sNum, s.sDate, s.cNum, m.cNum, c.cName, c.userId FROM J
+         cos c FULL OUTER JOIN member m ON c.cNum = m.cNum FULL OUTER JOIN sale s ON c.cNum = s.cNum;
+
+        -------------------------------------------------------
+        --
+
+
+   -- ο UPDATE JOIN VIEW 이용하여 빠른 업데이트(서브쿼리 보다 훨씬 빠르다.)
+      -- 테이블을 조인하여 UPDATE
+      -- tb_a 테이블의 내용(new_addr1, new_addr2)을 tb_b에 존재하는 내용(n_addr1, n_addr2)으로 수정
+      -- 조인 조건의 컬럼이 UNIQUE 속성이어야 가능하며(관계가 1:1) 그렇지 않으면 ORA-01779 오류가 발생한다.
+
+     -------------------------------------------------------
+     -- 예제
+        CREATE TABLE tb_a (
+             num  NUMBER PRIMARY KEY
+            ,addr1  VARCHAR2(255)
+            ,addr2 VARCHAR2(255)
+            ,new_addr1 VARCHAR2(255)
+            ,new_addr2 VARCHAR2(255)
+       );
+
+      CREATE TABLE tb_b (
+           num  NUMBER PRIMARY KEY
+          ,n_addr1 VARCHAR2(255)
+          ,n_addr2 VARCHAR2(255)
+      );
+
+      INSERT INTO tb_a VALUES(1,'서울1-1', '서울1-2','도로1-1', '도로1-2');
+      INSERT INTO tb_a VALUES(2,'서울2-1', '서울2-2','도로2-1', '도로2-2');
+      INSERT INTO tb_a VALUES(3,'서울3-1', '서울3-2','도로3-1', '도로3-2');
+      INSERT INTO tb_a VALUES(4,'서울4-1', '서울4-2','도로4-1', '도로4-2');
+      INSERT INTO tb_a VALUES(5,'서울5-1', '서울5-2','도로5-1', '도로5-2');
+
+      INSERT INTO tb_b VALUES(1,'세종1-1', '세종1-2');
+      INSERT INTO tb_b VALUES(3,'세종3-1', '세종3-2');
+      INSERT INTO tb_b VALUES(5,'세종5-1', '세종5-2');
+      COMMIT;
+
+     -------------------------------------------------------
+     --
+
+
+ -- ※ subquery
+   -- ο WITH
+     -------------------------------------------------------
+     --
+
+
+   -- ο 단일 행 서브 쿼리
+     -------------------------------------------------------
+     --
+
+
+   -- ο 다중 행 서브 쿼리
+      -- IN
+       -------------------------------------------------------
+       --
+
+
+      -- ANY(SOME) 
+       -------------------------------------------------------
+       --
+
+
+      -- ALL
+       -------------------------------------------------------
+       --
+
+
+      -- EXISTS 
+       -------------------------------------------------------
+       --
+
+
+   -- ο 상호 연관 서브 쿼리(correlated subquery, 상관 하위 부질의)
+     -------------------------------------------------------
+     --
+
+
+        -------------------------------------------------------
+        -- 학점 구하기
+        CREATE TABLE grade_table
+        (
+              grade  VARCHAR2(10) PRIMARY KEY
+              ,score NUMBER(3)
+        );
+        INSERT INTO grade_table(grade, score) VALUES ('A', 90);
+        INSERT INTO grade_table(grade, score) VALUES ('B', 80);
+        INSERT INTO grade_table(grade, score) VALUES ('C', 70);
+        INSERT INTO grade_table(grade, score) VALUES ('D', 60);
+        INSERT INTO grade_table(grade, score) VALUES ('F', 0);
+        COMMIT;
+
+        CREATE TABLE score_table
+        (
+              hak  VARCHAR2(30) PRIMARY KEY
+              ,score NUMBER(3) NOT NULL
+        );
+
+       INSERT INTO score_table(hak, score) VALUES ('1', 75);
+       INSERT INTO score_table(hak, score) VALUES ('2', 50);
+       INSERT INTO score_table(hak, score) VALUES ('3', 65);
+       INSERT INTO score_table(hak, score) VALUES ('4', 80);
+       INSERT INTO score_table(hak, score) VALUES ('5', 65);
+       COMMIT;
