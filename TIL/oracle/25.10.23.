@@ -1,0 +1,1387 @@
+25.10.23. Thur
+
+-- ■ 조인과 서브 쿼리
+ -- ※ 조인(joins)
+   -- ο INNER JOIN
+       -- 실습 테이블
+         -- 분류 테이블(분류코드, 분류명, 상위분류코드)
+            SELECT bcCode, bcSubject, pcCode FROM bclass;
+
+         -- 출판사 테이블(출판사번호, 출판사명, 전화번호)
+            SELECT pNum, pName, pTel FROM pub;
+
+         -- 책 테이블(서적코드, 서적명, 가격, 분류코드, 출판사번호)
+            SELECT bCode, bName, bPrice, bcCode, pNum FROM book;
+
+         -- 저자 테이블(저자번호, 서적코드, 저자명)
+            SELECT aNum, bCode, aName FROM author;
+
+         -- 고객 테이블(고객번호, 고객명, 전화번호)
+            SELECT cNum, cName, cTel FROM cus;
+
+         -- 회원 테이블(고객번호, 회원아이디, 회원패스워드, 이메일)
+            SELECT cNum, userId, userPwd, userEmail FROM member;
+    
+         -- 판매 테이블(판매번호, 판매일자, 고객번호)
+            SELECT sNum, sDate, cNum FROM sale;
+
+         -- 판매 상세 테이블(판매상세번호, 판매번호, 서적코드, 판매수량)
+            SELECT dNum, sNum, bCode, qty FROM dsale;
+
+     -- 1) EQUI JOIN (조건을 만족하는 컬럼만 가져옴)
+        -- 형식 1
+           SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명 ....
+           FROM 테이블명1, 테이블명2
+           WHERE 테이블명1.컬럼명 = 테이블명2.컬럼명  [AND 조건]
+
+           SELECT * FROM book;
+           SELECT * FROM pub;
+
+           --bCode,bName,bPrice,pNum,pName
+
+           --book:bCode,bName,bPrice,pNum
+           --pub:pNum,pName
+           --dsale:sNum,bCode,qty
+           --sale:sNum,sDate,cNum
+           --cus:cNum,cName
+
+           SELECT bCode,bName,bPrice,pNum,pName
+           FROM book,pub
+           WHERE book.pNum = pub.pNum;
+           --error : ORA-00918: 열의 정의가 애매합니다
+
+
+           SELECT b.bCode,bName,bPrice,b.pNum,pName,sDate,s.cNum,cName,qty,bPrice*qty
+           FROM book b, pub p, dsale d, sale s, cus c
+           WHERE b.pNum=p.pNum AND 
+            b.bCode = d.bCode AND 
+            d.sNum = s.sNum AND 
+            s.cNum = c.cNum;
+
+        -------------------------------------------------------
+        --
+        -- 판매현황 : 책코드(bCode), 책이름(bName), 책가격(bPrice), 출판사번호(pNum),
+                    --출판사이름(pName), 판매일자(sDate), 구매고객번호(cNum),
+                   -- 구매고객이름(cName), 판매수량(qty), 금액(bPrice * qty)
+
+           --book:bCode,bName,bPrice,pNum
+           --pub:pNum,pName
+           --dsale:sNum,bCode,qty
+           --sale:sNum,sDate,cNum
+           --cus:cNum,cName
+        -------------------------------------------------------
+        --
+
+
+        -- 형식 2
+           SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명 ....
+           FROM 테이블명1
+           [ INNER ] JOIN 테이블명2 ON 테이블명1.컬럼명 = 테이블명2.컬럼명1
+
+           SELECT b.bCode,b.bName,b.bPrice,b.pNum,p.pName,s.sDate,s.cNum,c.cName,d.qty,b.bPrice * d.qty
+           FROM book b
+           JOIN pub p ON b.pNum = p.pNum
+           JOIN dsale d ON b.bCode = d.bCode
+           JOIN sale s ON d.sNum = s.sNum
+           JOIN cus c ON s.cNum = c.cNum;
+
+        -------------------------------------------------------
+        --
+
+        -- 형식 3 --속도 느리니 형식1 또는 형식2 사용할 것
+           SELECT 컬럼명, 컬럼명
+           FROM 테이블명1
+           JOIN 테이블명2 USING (컬럼명1)
+           JOIN 테이블명3 USING (컬럼명2);
+
+           SELECT bCode,bName,bPrice,pNum,pName,sDate,cNum,cName,qty,bPrice * qty
+           FROM book
+           JOIN pub USING (pNUM)
+           JOIN dsale USING (bCode)
+           JOIN sale USING (sNUM)
+           JOIN cus USING (cNUM);
+                
+        -------------------------------------------------------
+        --
+
+        --bCode,bName,bPrice,sDate,cNUM,qty,qty*bPrice 금액
+        --cNum이 '서울서점'인 레코드만 출력
+
+        SELECT b.bCode,b.bName,b.bPrice,s.sDate,s.cNum,d.qty,b.bPrice * d.qty 금액
+           FROM book b
+           JOIN pub p ON b.pNum = p.pNum
+           JOIN dsale d ON b.bCode = d.bCode
+           JOIN sale s ON d.sNum = s.sNum
+           JOIN cus c ON s.cNum = c.cNum
+           WHERE cName='서울서점';
+
+
+         SELECT b.bcode,b.bName,b.bPrice,s.sDate,s.cNUM,qty,(d.qty*b.bPrice) 금액
+         FROM book B 
+         JOIN dsale d ON b.bcode = d.bcode
+         JOIN sale s ON d.sNum = s.sNUM
+         JOIN cus c ON s.cNum=c.cNum
+         WHERE cName='서울서점';
+        
+        --판매된 bCode,bName,판매권수의 합 출력
+        --dSale테이블에 책 판매권수 존재
+        
+         SELECT b.bCode,b.bName,sum(d.qty) 판매권수합
+           FROM book b
+           JOIN dsale d ON b.bCode = d.bCode
+           GROUP BY b.bcode, b.bName;
+
+        --판매된 bCode,bName,판매권수합,판매금액합 : 책코드오름차순
+        
+         SELECT b.bCode,b.bName,sum(d.qty) 판매권수합, SUM(qty*bPrice)
+           FROM book b
+           JOIN dsale d ON b.bCode = d.bCode
+           GROUP BY b.bcode, b.bName
+           ORDER BY bcode;
+        
+        --판매된 bCode,bName,판매권수합 : 판매권수합이 80권 이상만 출력
+         SELECT bCode,bName, 판매권수합
+           FROM book, 
+           (SELECT sum(d.qty) 판매권수합 FROM book b 
+           JOIN pub p ON b.pNum = p.pNum
+           JOIN dsale d ON b.bCode = d.bCode
+           JOIN sale s ON d.sNum = s.sNum
+           JOIN cus c ON s.cNum = c.cNum
+           GROUP BY b.bcode, b.bName
+            ) 
+            WHERE 판매권수합>=80;
+
+        --판매된 bCode,bName,판매권수합 : 중복 배제
+            
+         SELECT DISTINCT b.bCode,b.bName,sum(d.qty) 판매권수합
+           FROM book b
+           JOIN pub p ON b.pNum = p.pNum
+           JOIN dsale d ON b.bCode = d.bCode
+           JOIN sale s ON d.sNum = s.sNum
+           JOIN cus c ON s.cNum = c.cNum
+           GROUP BY b.bcode, b.bName;
+
+        --판매된 책 중 판매권수의 합이 가장 큰 bCode,bName 출력
+        SELECT b.bCode, b.bName, SUM(d.qty) AS total_qty
+         FROM book b
+         JOIN dsale d ON b.bCode = d.bCode
+         GROUP BY b.bCode, b.bName
+         ORDER BY total_qty DESC;
+
+         --판매된 책 중 판매권수의 합이 1,2,3등인 책의 bCode,bName 출력
+         SELECT bCode, bName, total_qty
+         FROM (
+            SELECT b.bCode, b.bName, SUM(d.qty) AS total_qty,
+                  RANK() OVER (ORDER BY SUM(d.qty) DESC) AS 순위
+            FROM book b
+            JOIN dsale d ON b.bCode = d.bCode
+            GROUP BY b.bCode, b.bName
+         )
+         WHERE 순위 = 1;
+
+        --올해의 판매현황 출력
+        -- 판매현황 : 책코드(bCode), 책이름(bName), 책가격(bPrice), 출판사번호(pNum),
+                   --출판사이름(pName), 판매일자(sDate), 구매고객번호(cNum),
+                   -- 구매고객이름(cName), 판매수량(qty), 금액(bPrice * qty)
+
+                  SELECT b.bCode, b.bName, b.bPrice, b.pNum, p.pName, s.sDate, s.cNum, c.cName, d.qty, b.bPrice * d.qty AS 금액
+                  FROM book b
+                  JOIN pub p ON b.pNum = p.pNum
+                  JOIN dsale d ON b.bCode = d.bCode
+                  JOIN sale s ON d.sNum = s.sNum
+                  JOIN cus c ON s.cNum = c.cNum
+                  WHERE TO_CHAR(s.sDate, 'YYYY') = TO_CHAR(SYSDATE, 'YYYY');
+
+        --작년의 판매 현황 출력
+
+                  SELECT b.bCode, b.bName, b.bPrice, b.pNum, p.pName, s.sDate, s.cNum, c.cName, d.qty, b.bPrice * d.qty AS 금액
+                  FROM book b
+                  JOIN pub p ON b.pNum = p.pNum
+                  JOIN dsale d ON b.bCode = d.bCode
+                  JOIN sale s ON d.sNum = s.sNum
+                  JOIN cus c ON s.cNum = c.cNum
+                  WHERE TO_CHAR(s.sDate, 'YYYY') = TO_CHAR(SYSDATE, 'YYYY')-1;
+            
+        --고객별 판매금액 합 출력
+        --cNum,cName,년도,판매금액합 : 고객번호 오름차순, 년도 오름차순
+
+         SELECT s.cNum, c.cName, TO_CHAR(s.sDate, 'YYYY') 년도, SUM(b.bPrice * d.qty) AS 금액합
+         FROM book b
+         JOIN dsale d ON b.bCode = d.bCode
+         JOIN sale s ON d.sNum = s.sNum
+         JOIN cus c ON s.cNum = c.cNum
+         GROUP BY s.cNum, c.cName, TO_CHAR(s.sDate, 'YYYY')
+         ORDER BY s.cNum, 년도;
+
+         --고객의 작년과 올해의 판매금액현황 출력
+        --cNum,cName,년도,판매금액합 : 고객번호 오름차순, 년도 오름차순
+
+         SELECT s.cNum, c.cName, TO_CHAR(s.sDate, 'YYYY') 년도, SUM(b.bPrice * d.qty) AS 금액합
+         FROM book b
+         JOIN dsale d ON b.bCode = d.bCode
+         JOIN sale s ON d.sNum = s.sNum
+         JOIN cus c ON s.cNum = c.cNum
+         where to_char(sysdate,'YYYY')-TO_CHAR(sDate,'YYYY')<=1
+         GROUP BY s.cNum, c.cName, TO_CHAR(s.sDate, 'YYYY')
+         ORDER BY s.cNum, 년도;
+
+        --고객의 이번달 판매금액 현황 출력
+
+                  SELECT s.cNum, c.cName, TO_CHAR(sDate,'YYYYMM')년월, sum(b.bPrice * d.qty) 금액합
+                  FROM book b
+                  JOIN dsale d ON b.bCode = d.bCode
+                  JOIN sale s ON d.sNum = s.sNum
+                  JOIN cus c ON s.cNum = c.cNum
+                  WHERE TO_CHAR(s.sDate, 'YYYYMM') = TO_CHAR(SYSDATE, 'YYYYMM')
+                  GROUP BY s.cNum, cName,to_char(sDate,'YYYYMM')
+                  ORDER BY cNum 년도;
+
+                  
+        --작년 누적 판매금액이 가장 많은 고객 출력
+         WITH tb AS (
+         SELECT 
+            s.cNum,
+            SUM(b.bPrice * d.qty) AS total_amount
+         FROM book b
+         JOIN dsale d ON b.bCode = d.bCode
+         JOIN sale s ON d.sNum = s.sNum
+         WHERE EXTRACT(YEAR FROM s.sDate) = EXTRACT(YEAR FROM SYSDATE) - 1
+         GROUP BY s.cNum
+         ),
+         TopCustomer AS (
+         SELECT cNum
+         FROM tb
+         WHERE total_amount = (SELECT MAX(total_amount) FROM tb)
+         )
+         SELECT 
+         s.cNum, 
+         c.cName, 
+         TO_CHAR(s.sDate,'YYYYMM') AS 년월, 
+         SUM(b.bPrice * d.qty) AS 월별판매금액
+         FROM book b
+         JOIN dsale d ON b.bCode = d.bCode
+         JOIN sale s ON d.sNum = s.sNum
+         JOIN cus c ON s.cNum = c.cNum
+         WHERE EXTRACT(YEAR FROM s.sDate) = EXTRACT(YEAR FROM SYSDATE) - 1
+         AND s.cNum IN (SELECT cNum FROM TopCustomer)
+         GROUP BY s.cNum, c.cName, TO_CHAR(s.sDate,'YYYYMM')
+         ORDER BY s.cNum, 년월;
+
+        -------------------------------------------------------
+        --
+
+        -- 2) NATURAL JOIN -- 실무에서 쓸 일 없음(부하 커서)
+        -- 형식 (별명 x 똑같은 이름이면 조인됨)
+           SELECT 컬럼명, 컬럼명 ....
+           FROM 테이블명1
+           NATURAL JOIN  테이블명2
+
+           SELECT bCode,bName,bPrice,pNum,pName,sDate,cNum,cName,qty,bPrice*qty amt
+           FROM book
+           NATURAL JOIN pub
+           NATURAL JOIN dsale
+           NATURAL JOIN sale
+           NATURAL JOIN cus;
+
+        -------------------------------------------------------
+        --
+
+
+     -- 3) CROSS JOIN : 카디션 곱
+        -------------------------------------------------------
+        --
+
+        SELECT * FROM pub;
+        SELECT * FROM book;
+
+        SELECT p.pNum,pName,bCode,bName
+        FROM pub p
+        CROSS JOIN book b;
+
+
+
+
+
+     -- 4) SELF JOIN - 같은 테이블을 EQUI JOIN
+        -------------------------------------------------------
+        --대분류 중분류
+        SELECT * FROM bclass;
+
+        SELECT b1.bcCode, b1.bcSubject,b1.pcCode,
+        b2.bcCode,b2.bcSubject,b2.pcCode
+        FROM bclass b1 
+         JOIN bclass b2 ON b1.bcCode=b2.pcCode;
+
+      -- 저자가 2명 이상인 경우 
+         SELECT * FROM author;
+
+         SELECT a1.bCode, a1.aname,a2.aname
+         FROM author a1
+         JOIN author a2 ON a1.bcode=a2.bcode
+         ORDER BY a1.bCode;
+
+         SELECT a1.bCode, a1.aname,a2.aname
+         FROM author a1
+         JOIN author a2 ON a1.bcode=a2.bcode
+         WHERE a1.aname>a2.aname
+         ORDER BY a1.bCode;
+
+         --저자가 2명 이상 책 코드, 책 이름
+         SELECT bCode, bName
+         FROM book 
+         WHERE bCode IN(
+            SELECT a1.bcode
+            FROM author a1
+            JOIN author a2 ON a1.bcode = a2.bcode
+            where a1.aName > a2.aname
+         );
+
+         SELECT bCode, bName
+         FROM book 
+         WHERE bCode IN(
+            SELECT a1.bcode
+            FROM author a1
+            JOIN author a2 ON a1.bcode = a2.bcode AND a1.aName > a2.aname
+         );
+
+
+
+         
+     -- 5) NON-EQUI JOIN
+        -- 형식
+            SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명 ....
+            FROM 테이블명1, 테이블명2..
+            WHERE (non-equi-join 조건)
+
+        -------------------------------------------------------
+        --EQUI JOIN
+        SELECT s.sNum,bCode,cNum,sDate,qty
+        FROM sale s
+        JOIN dsale d ON s.sNUm=d.snum;
+
+        --NON-EQUI JOIN
+        SELECT s.sNum,bCode,cNum,sDate,qty
+        FROM sale s
+        JOIN dsale d ON s.sNUm=d.snum;
+
+
+
+   -- ο OUTER JOIN(이큐와 함께 가장 많이 쓰임)
+     -- 1) LEFT OUTER JOIN
+       -- 형식1
+           SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+           FROM 테이블명1, 테이블명2
+           WHERE 테이블명1.컬럼명=테이블명2.컬럼명(+);
+
+       -- 형식2
+          SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+          FROM 테이블명1
+          LEFT OUTER JOIN 테이블명2 ON 테이블명1.컬럼명=테이블명2.컬럼명;
+
+        -------------------------------------------------------
+        --book(bCode,bName),dsale(bCode,sNum,qty)
+      
+        --EQUI JOIN
+        SELECT b.bcode,bName,sNum,qty
+        FROM book b, dsale D
+        WHERE b.bcode=d.bcode;
+
+        --LEFT OUTER JOIN 1
+        SELECT b.bcode, b.bName, d.sNum, d.qty
+         FROM book b, d
+         WHERE b.bcode = d.bcode(+);
+
+
+        --LEFT OUTER JOIN 2
+        SELECT b.bcode, b.bName, d.sNum, d.qty
+        FROM book b
+        LEFT OUTER JOIN dsale d ON b.bCode = d.bCode;
+
+        --bcode,bname,sNum,sDate,qty
+        --판매되지 않은 책 목록도 출력
+        SELECT UNIQUE b.bcode,b.bName, d.sNum, d.qty
+        FROM book b,dsale d;
+
+        SELECT b.bcode,bname,d.snum,sDate,qty
+        FROM book b
+        LEFT OUTER JOIN dsale d ON b.bcode = d.bcode
+        LEFT OUTER JOIN sale s ON d.sNum=s.snum;
+
+        --bCode,bName
+        --판매된 책 목록만 출력
+        SELECT UNIQUE b.bcode,b.bName
+        FROM book b
+        JOIN dsale d on b.bcode=d.bcode;
+
+        SELECT bCode,bName
+        FROM book
+        WHERE bcode IN (SELECT DISTINCT bCode FROM dsale);
+
+        --bCode,bName
+        --판매가 한 번도 되지 않은 책 목록 출력
+
+         SELECT b.bcode,b.bName
+        FROM book b
+        LEFT OUTER JOIN dsale d ON b.bCode=d.bcode
+        WHERE d.bcode IS null;
+
+     -- 2) RIGHT OUTER JOIN
+       -- 형식1
+           SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+           FROM 테이블명1, 테이블명2
+           WHERE 테이블명1.컬럼명(+)=테이블명2.컬럼명;
+
+
+
+       -- 형식2
+          SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+          FROM 테이블명1
+          RIGHT OUTER JOIN 테이블명2 ON 테이블명1.컬럼명=테이블명2.컬럼명;
+
+          SELECT b.bcode,bName,sNum,qty
+          FROM dsale d, book b
+          WHERE d.bcode(+)=b.bcode;
+
+          SELECT b.bcode,bName,sNum,qty
+          FROM dsale d
+          RIGHT OUTER JOIN book b ON d.bcode=b.bcode;
+
+        -------------------------------------------------------
+        --
+
+
+     -- 3) FULL OUTER JOIN 합집합-교집합
+       -- 형식
+          SELECT [테이블명1.]컬럼명, [테이블명2.]컬럼명
+          FROM 테이블명1 FULL OUTER JOIN 테이블명2 ON 테이블명1.컬럼명=테이블명2.컬럼명;
+
+          SELECT sNum,sDate,s.cNUM,m.cNUM,userId
+          FROM sale s
+          LEFT OUTER JOIN member m ON s.cNUM=m.cNUM;
+
+          SELECT sNum,sDate,s.cNUM,m.cNUM,userIdSELECT sNum,sDate,s.cNUM,m.cNUM,userId
+          FROM sale s
+          LEFT OUTER JOIN member m ON s.cNUM=m.cNUM;
+
+
+       --  cName이 NULL인 데이터가 없음
+
+         SELECT sNUm,sDate,s.cNum,m.cNUM,cName,userId
+         FROM cos c
+         full Outer join member m ON c.cNum - c.dNumM.cNum
+        FULL OUTER JOIN SALE S on C.CnUM=S.CnUN;                                                                                                 
+
+         SELECT s.sNum, s.sDate, s.cNum, m.cNum, c.cName, c.userId FROM J
+         cos c FULL OUTER JOIN member m ON c.cNum = m.cNum FULL OUTER JOIN sale s ON c.cNum = s.cNum;
+
+        -------------------------------------------------------
+        --
+
+
+   -- ο UPDATE JOIN VIEW 이용하여 빠른 업데이트(서브쿼리 보다 훨씬 빠르다.)
+      -- 테이블을 조인하여 UPDATE
+      -- tb_a 테이블의 내용(new_addr1, new_addr2)을 tb_b에 존재하는 내용(n_addr1, n_addr2)으로 수정
+      -- 조인 조건의 컬럼이 UNIQUE 속성이어야 가능하며(관계가 1:1) 그렇지 않으면 ORA-01779 오류가 발생한다.
+
+     -------------------------------------------------------
+     -- 예제
+        CREATE TABLE tb_a (
+             num  NUMBER PRIMARY KEY
+            ,addr1  VARCHAR2(255)
+            ,addr2 VARCHAR2(255)
+            ,new_addr1 VARCHAR2(255)
+            ,new_addr2 VARCHAR2(255)
+       );
+
+      CREATE TABLE tb_b (
+           num  NUMBER PRIMARY KEY
+          ,n_addr1 VARCHAR2(255)
+          ,n_addr2 VARCHAR2(255)
+      );
+
+      INSERT INTO tb_a VALUES(1,'서울1-1', '서울1-2','도로1-1', '도로1-2');
+      INSERT INTO tb_a VALUES(2,'서울2-1', '서울2-2','도로2-1', '도로2-2');
+      INSERT INTO tb_a VALUES(3,'서울3-1', '서울3-2','도로3-1', '도로3-2');
+      INSERT INTO tb_a VALUES(4,'서울4-1', '서울4-2','도로4-1', '도로4-2');
+      INSERT INTO tb_a VALUES(5,'서울5-1', '서울5-2','도로5-1', '도로5-2');
+
+      INSERT INTO tb_b VALUES(1,'세종1-1', '세종1-2');
+      INSERT INTO tb_b VALUES(3,'세종3-1', '세종3-2');
+      INSERT INTO tb_b VALUES(5,'세종5-1', '세종5-2');
+      COMMIT;
+
+      SELECT * FROM tb_a;
+      SELECT * FROM tb_b;
+
+      --UPDATE 테이블명 SET 컬럼명=값 WHERE 조건;
+
+      UPDATE(
+         SELECT a.new_addr1,a.new_addr2,b.n_addr1,b.n_addr2
+         FROM tb_a a, tb_b b
+         where a.num=b.num
+      )
+      SET new_addr1=n_addr1, new_addr2=n_addr2;
+
+     -------------------------------------------------------
+     --
+
+
+ -- ※ subquery
+ --SELECT,INSERT,UPDATE,DELETE문이나 다른 하위 쿼리 내의 중첩된 SELECT문
+ --단독 실행 가능
+ --사용
+   --WHERE 절 : 조건절에서 서브쿼리 사용
+   --SELECT 절 : SELECT list에 기술하는 서브쿼리. 하나의 행과 하나의 값을 반환해야 함
+   --SELECT FROM 절 : inline view라 함
+   --HAVING 절
+   --INSERT 문장의 INTO 절
+   --UPDATE 문장의 SET 절
+   --DELETE 문장의 FROM 절
+   --CREATE TABLE
+
+   -- ο WITH
+     -------------------------------------------------------
+     --사브쿼리를 미리 블럭으로 정한 후 사용
+     --하나의 WITH 절
+     /*WITH 이름 AS(
+         SELECT 컬럼, 컬럼 FROM 테이블 WHERE 조건
+     ) SELECT 컬럼, 컬럼 FROM with_name WHERE 조건;
+     */
+
+    --두 개 이상의 WITH절
+    WITH with_name1 AS(
+    SELECT 컬럼,컬럼 FROM 테이블 WHERE 조건),
+    with_name2 AS (
+    SELECT 컬럼,컬럼 FROM 테이블 WHERE 조건)
+    SELECT 컬럼,컬럼 FROM with_name1 별명1, with_name2 별명2 WHERE 조건;
+
+   -- ο 단일 행 서브 쿼리
+     -------------------------------------------------------
+     --서브쿼리 결과가 하나의 행, 하나의 값을 반환
+
+     SELECT empNo,name,sal,sal - (SELECT AVG(sal) FROM emp) 차이
+     FROM emp
+     WHERE sal < (SELECT AVG(sal) FROM emp);
+
+
+
+   -- ο 다중 행 서브 쿼리
+      -- IN
+       -------------------------------------------------------
+       --
+       SELECT bCode,bName
+       FROM book
+       WHERE bCode IN(SELECT DISTINCT bCode FROM dsale);
+
+
+      -- ANY(SOME) 
+       -------------------------------------------------------
+       --비교 조건이 서브쿼리의 검색 결과와 하나 이상 일치하면 TRUE
+       SELECT empNo, name sal
+       FROM emp
+       WHERE sal> ANY(3000000,3500000,4000000);
+
+       SELECT empNo, name sal
+       FROM emp
+       WHERE sal> 4000000;
+
+
+      -- ALL
+       -------------------------------------------------------
+       --비교 조건이 서브쿼리의 검색 결과와 모두 일치하면 참
+
+       SELECT empNo, name sal
+       FROM emp
+       WHERE sal> ALL(3000000,3500000,4000000);
+
+       SELECT empNo, name sal
+       FROM emp
+       WHERE sal> 4000000;
+
+
+      -- EXISTS 
+       -------------------------------------------------------
+       --만족하는 값이 하나라도 존재하면 참
+
+       SELECT bCode, bName FROM book WHERE 1=0; --조건=FALSE : 출력되는 레코드 없음
+       SELECT bCode, bName FROM book WHERE 1=1; --조건=TRUE : 모든 레코드 출력
+
+       SELECT bcode, bName FROM book
+       WHERE EXISTS (SELECT * FROM dsale WHERE qty>=10); --qty>=10 만족하는 레코드 존재 -> 조건=TRUE -> 모든 레코드 출력
+
+
+
+   -- ο 상호 연관 서브 쿼리(correlated subquery, 상관 하위 부질의)
+     -------------------------------------------------------
+     --sal로 순위 부여
+     SELECT name,sal,
+     (SELECT COUNT(e1.sal) + 1 FROM emp e2 WHERE e2.sal>e1.sal) 순위
+     FROM emp e1;
+     
+
+
+        -------------------------------------------------------
+        -- 학점 구하기
+        CREATE TABLE grade_table
+        (
+              grade  VARCHAR2(10) PRIMARY KEY
+              ,score NUMBER(3)
+        );
+        INSERT INTO grade_table(grade, score) VALUES ('A', 90);
+        INSERT INTO grade_table(grade, score) VALUES ('B', 80);
+        INSERT INTO grade_table(grade, score) VALUES ('C', 70);
+        INSERT INTO grade_table(grade, score) VALUES ('D', 60);
+        INSERT INTO grade_table(grade, score) VALUES ('F', 0);
+        COMMIT;
+
+        CREATE TABLE score_table
+        (
+              hak  VARCHAR2(30) PRIMARY KEY
+              ,score NUMBER(3) NOT NULL
+        );
+
+       INSERT INTO score_table(hak, score) VALUES ('1', 75);
+       INSERT INTO score_table(hak, score) VALUES ('2', 50);
+       INSERT INTO score_table(hak, score) VALUES ('3', 65);
+       INSERT INTO score_table(hak, score) VALUES ('4', 80);
+       INSERT INTO score_table(hak, score) VALUES ('5', 65);
+       COMMIT;
+
+      SELECT * FROM grade_table;
+      SELECT * FROM score_table;
+
+SELECT s1.hak,
+       s1.score,
+       s2.grade
+FROM (
+    SELECT hak,
+           score,
+           (SELECT MAX(score)
+            FROM grade_table
+            WHERE score <= s.score) AS gscore
+    FROM score_table s
+) s1
+JOIN grade_table s2
+    ON s1.gscore = s2.score;
+
+-- ■ 뷰 및 시퀀스, 시노님
+ -- ※ 뷰(VIEW)
+   -- : 가상의 테이블
+   -- : 뷰를 만들수 있는 권한이 있어야 뷰를 만들 수 있다.
+   -- : 권한이 없는 경우 다음의 에러가 발생
+      -- ORA-01031: 권한이 불충분합니다.
+      --일반 유저에게 뷰를 만들 수 있는 권한 부여(관리자 계정 : sys, system)
+        --GRANT CREATE VIEW TO 계정명;
+     --사용자 계정 : 자신의 시스템 권한 확인
+     SELECT * FROM user_sys_privs;
+     --사용자의 롤 확인
+     SELECT * FROM USER_ROLE_PRIVS;
+
+     -------------------------------------------------------
+     --판매 현황 뷰 작성
+     --bCode,bName,bPrice,pNum,pName,sDate,cNum,cName,qty
+     --book(bCode,bName,bPrice,pNum)
+     --pub(pNum,pName)
+     --sale(sNum,sDate,cNum)
+     --dSale(sNum,bCode,qty)
+     --cus(cNum,cName)
+
+     SELECT b.bcode,bName,bPrice,b.pNum,pName,sDate,s.cNum,cName,qty
+     FROM book B
+     JOIN pub p ON b.pNUM=p.pNUM
+     JOIN dsale d ON b.bcode=d.bcode
+     JOIN sale s ON d.snum = s.snum
+     join cus c ON s.cNum = c.cNum;
+
+     CREATE VIEW sell
+     AS(
+        SELECT b.bcode,bName,bPrice,b.pNum,pName,sDate,s.cNum,cName,qty
+        FROM book B
+        JOIN pub p ON b.pNUM=p.pNUM
+        JOIN dsale d ON b.bcode=d.bcode
+        JOIN sale s ON d.snum = s.snum
+        join cus c ON s.cNum = c.cNum
+        );
+
+     --뷰 목록 확인
+     SELECT * FROM tab;
+     --뷰의 컬럼 확인
+     DESC sell
+     SELECT * FROM col WHERE tName=UPPER('sell');
+
+     --뷰의 레코드(데이터) 확인
+     SELECT * FROM sell;
+
+     --뷰의 소스 확인
+     SELECT view_name, text FROM user_views;
+
+     --뷰 수정 
+     --CREATE OR REPLACE VIEW 뷰이름: 뷰가 없으면 만들고, 존재하면 수정
+      CREATE OR REPLACE VIEW sell
+     AS(
+        SELECT b.bcode,bName,bPrice,b.pNum,pName,sDate,s.cNum,cName,qty, qty*bPrice amt
+        FROM book B
+        JOIN pub p ON b.pNUM=p.pNUM
+        JOIN dsale d ON b.bcode=d.bcode
+        JOIN sale s ON d.snum = s.snum
+        join cus c ON s.cNum = c.cNum
+        );
+
+     --뷰 삭제
+     DROP VIEW sell;
+     SELECT * FROM tab;
+     commit;
+
+     --뷰를 이용하여 뷰 작성 - 성능 좋지 않음
+     CREATE OR REPLACE VIEW sell_year
+     AS
+        SELECT TO_CHAR(sDate,'YYYY') 년도,
+            bCode,bName,SUM(qty) 수량합,
+            SUM(qty * bPrice) 금액합
+        FROM sell
+        GROUP BY TO_CHAR(sDate,'YYYY'),bCode,bName 
+        ORDER BY 년도 DESC;
+
+     SELECT * FROM sell_year;
+
+     --뷰를 이용하여 INSERT, UPDATE, DELETE
+     --테이블 하나로만 만들어진 뷰(JOIN하지 않은 뷰)만 제약조건을 위반하지 않으면 가능
+
+     --------------------------------------------------------------------------------------------
+     --emp 태이블을 이용하여 뷰 작성
+     --뷰이름:empView
+     --컬럼:empNo,name,birth,gender,hireDate,sal,bonus,tot_pay,tax
+     --birth 및 gender는 rrn 컬럼 이용
+     --성별은 남자, 여자로 출력
+     --tot_pay=sal+bonus
+     --tax : tot_pay >=3000000이면 3%, 2000000 이상이면 2%, 나머지 0
+     --tax는 일의 자리 올림
+     --birth는 RRMMDD 사용하지말것
+
+     CREATE OR REPLACE VIEW empView
+     AS
+        SELECT empNo,name,
+         TO_DATE( CASE
+                    WHEN SUBSTR(rrn,8,1) IN (1,2,5,6) THEN '19'
+                    WHEN SUBSTR(rrn,8,1) IN (3,4,7,8) THEN '20'
+                    END || SUBSTR(rrn,1,6), 'YYYYMMDD') AS birth,
+        DECODE(MOD(SUBSTR(rrn,8,1),2),0,'여자','남자') AS gender,
+        hireDate,sal,bonus,
+        (sal+ bonus) AS tot_pay,
+        ROUND (CASE 
+                WHEN (sal+ bonus)>=3000000 THEN 0.03
+                WHEN (sal+ bonus)>=2000000 THEN 0.02
+                ELSE 0
+                END * (sal+bonus)+4,-1) AS tax
+        FROM emp;
+        
+        SELECT 
+            empNo,name,gender,
+            TO_CHAR(birth,'YYYY-MM-DD') birth,
+            TRUNC(MONTHS_BETWEEN(SYSDATE,birth)/12) age,
+            sal,bonus, tot_pay, tax, tot_pay-tax actualSalary
+            FROM empView;
+
+        select * FROM empView;
+     ---------------------------------------------
+
+ -- ※ 시퀀스(sequence)
+     -- 연속적인 유일의 정수값 생성(1, 2, 3, ...)
+     -- 시퀀스 값을 기본키의 값으로 사용 할 수 있다.
+     -- 트랜잭션의 커밋 또는 롤백과 상관없이 시퀀스는 증가한다.
+     -- 12C 이상부터는 테이블 생성시 DEFAULT 값으로 시퀀스 값을 할당 할 수 있다.
+   
+     -- 시퀀스 목록 확인
+        SELECT * FROM seq;
+         SELECT * FROM user_sequences;
+   
+     -- 시퀀스 값 가져오기
+        시퀀스이름.NEXTVAL : 다음 시퀀스 값
+        시퀀스이름.CURRVAL : 현재 시퀀스 값
+
+     --시퀀스 작성
+     --1부터 1씩 증가하는 시퀀스 작성
+     CREATE SEQUENCE test_seq
+     INCREMENT BY 1
+     START WITH 1
+     NOMAXVALUE
+     NOCYCLE
+     NOCACHE;
+
+     --다음 시퀀스 값 가져오기
+     SELECT test_seq.NEXTVAL FROM dual;
+     SELECT test_seq.NEXTVAL FROM dual;
+     SELECT test_seq.NEXTVAL FROM dual;
+
+     --현재 시퀀스 값 가져오기
+     SELECT test_seq.CURRVAL FROM dual;
+
+     --시퀀스 삭제
+     DROP SEQUENCE test_seq;
+
+     --시퀀스 사용 예
+     CREATE TABLE board(
+        num NUMBER PRIMARY KEY,
+        name VARCHAR2(30) NOT NULL,
+        subject VARCHAR2(255) NOT NULL,
+        content VARCHAR2(4000) NOT NULL,
+        hitCount NUMBER DEFAULT 0,
+        reg_date DATE DEFAULT SYSDATE
+     );
+
+     CREATE SEQUENCE board_seq
+        INCREMENT BY 1
+        START WITH 1
+        NOMAXVALUE
+        NOCYCLE
+        NOCACHE;
+
+     SELECT * FROM tab;
+     SELECT * FROM seq;
+
+     INSERT INTO board
+        (num,name,subject,content,hitCount,reg_date)
+        VALUES (board_seq.NEXTVAL, '이름1', '제목1', '내용1', 0, SYSDATE);  
+     INSERT INTO board
+        (num,name,subject,content,hitCount,reg_date)
+        VALUES (board_seq.NEXTVAL, '이름2', '제목2', '내용2', 0, SYSDATE);
+     INSERT INTO board
+        (num,name,subject,content,hitCount,reg_date)
+        VALUES (board_seq.NEXTVAL, '이름3', '제목3', '내용3', 0, SYSDATE);
+    
+     SELECT * FROM board;
+     -------------------------------------------------------
+     ROLLBACK;
+     --롤백해도 시퀀스는 1로 돌아가지 않는다.
+
+     INSERT INTO board
+        (num,name,subject,content,hitCount,reg_date)
+        VALUES (board_seq.NEXTVAL, '이름1', '제목1', '내용1', 0, SYSDATE);  
+     INSERT INTO board
+        (num,name,subject,content,hitCount,reg_date)
+        VALUES (board_seq.NEXTVAL, '이름2', '제목2', '내용2', 0, SYSDATE);
+     INSERT INTO board
+        (num,name,subject,content,hitCount,reg_date)
+        VALUES (board_seq.NEXTVAL, '이름3', '제목3', '내용3', 0, SYSDATE);
+    
+     SELECT * FROM board;
+
+     DROP TABLe board PURGE;
+     DROP SEQUENCE board_seq;
+
+     --1부터 증가하는 시퀀스,  기본 캐시 20개
+     CREATE SEQUENCE test_seq1; 
+        --기본 캐시 20개(20개의 시퀀스를 미리 작성함)
+        --현재 시퀀스가 3인 상태에서 오라클 서버가 재실행되면 다음 시퀀스는 21이 된다.
+     --10~20까지 2씩 증가하는 시퀀스. 캐쉬 5개
+     CREATE SEQUENCE test_seq2
+        INCREMENT BY 2
+        START WITH 10
+        MINVALUE 10
+        MAXVALUE 20
+        CACHE 5;
+
+     SELECT * FROM seq;
+
+     SELECT test_seq2.NEXTVAL FROM dual;
+     --20이 넘으면 에러
+
+     --10부터 시작하여 20까지 3씩 증가하는 시퀀스, 캐시3개
+     --마지막에 도달하면 1부터 다시 시작
+     CREATE SEQUENCE test_seq3
+        INCREMENT BY 3
+        START WITH 10
+        MINVALUE 1
+        MAXVALUE 20
+        CYCLE
+        CACHE 3;
+     
+     SELECT test_seq3.NEXTVAL FROM dual;
+
+     -------------------------------------------------------
+     --
+
+
+ -- ※ 시노님(synonym)
+     -------------------------------------------------------
+     --객체를 참조할 때 편리하게 접근할 수 있는 동의어 설정
+     --시노님을 만들기 위한 권한 필요
+
+     -- 관리자 계정(sys,system) : sky에게 synonym 작성 권한 부여
+     GRANT CREATE SYSNONYM TO sky;
+
+     --sky 계정 : 시스템 권한 확인
+     SELECT * FROM user_sys_privs;
+    
+     --sky 계정 : hr 계정의 empoyees 테이블의 내용을 SELECT
+     SELECT * FROM hr.employees;
+        --다른 계정의 테이블 참조 : 계정명.테이블명 (테이블이 없습니다 (권한이 없어서))
+
+     --hr 계정 : sky 계정에게 employees 테이블을 SELECT 할 수 있는 권한 부여
+     GRANT SELECT ON employees TO SKY;
+
+     --sky 계정
+     --객체 권한 확인
+     SELECT * FROM user_tab_privs;
+
+     SELECT * FROM employees; --테이블이 없습니다. hr의 것임
+
+     SELECT * FROM hr.employees;
+
+     --hr.employees에 대한 시노님 작성
+     CREATE SYNONYM employees FOR hr.empoyees;
+
+     --employees 시노님 SELECT
+     SELECT * FROM employees;
+
+     --hr 계정 : sky 계정의 employees 테이블을 SELECT 할 수 있는 권한 회수
+     REVOKE SELECT ON employees FROM sky;
+
+     --시노님 목록 확인
+     SELECT * FROM syn;
+
+     --시노님 삭제
+     DROP SYNONYM employees;
+     SELECT * FROM syn;
+
+-- ■ 고급 쿼리
+ -- ※ 계층형 질의(Hierarchical Query)
+   -- ο 계층적 쿼리
+     -------------------------------------------------------
+     --
+     SELECT * FROM soft;
+
+     --상위에서 하위로 출력
+     SELECT num,subject, LEVEL, parent
+     FROM soft 
+     START WITH num =1 --출력을 시작할 행
+     CONNECT BY PRIOR num=parent; --계층관계 설정
+     --CONNECT BY parent = PRIOR num;과 동일
+        --CONNECT BY : 계층적 질의에서 사용
+        --CONNECT BY PRIOR : 각 행이 어떻게 연결될 지를 설정
+        --PRIOR : 이전 행과 다음 행을 연결하는 연산자
+        --나(num)을 부모(parent)로 사용하는 행 : 하위 검색
+        --parent 컬럼 : 상위 정보를 가진 컬럼
+        --LEVEL : 검색된 결과에 대한 계층별로 부여한 번호(1,2,...)
+
+     SELECT num,subject, LEVEL, parent
+     FROM soft 
+     START WITH num =2 
+     CONNECT BY PRIOR num=parent; --나를 부모로 씀 -> 자식
+
+     SELECT num,LPAD(' ', (LEVEL-1)*4) || subject subject, LEVEL,parent 
+     FROM soft
+     START WITH num=1 
+     CONNECT BY PRIOR num=parent;
+     ------------
+     --하위에서 상위로 출력
+     SELECT num,LPAD(' ', (LEVEL-1)*4) || subject subject, LEVEL,parent 
+     FROM soft
+     START WITH num=15 
+     CONNECT BY num = PRIOR parent;
+
+     --프로그래밍 및 프로그래밍 하위
+     SELECT num,LPAD(' ', (LEVEL-1)*4) || subject subject, LEVEL,parent 
+     FROM soft
+     START WITH num=2
+     CONNECT BY PRIOR num = parent;
+
+     --프로그래밍 및 프록그래밍 하위 모든 레코드 삭제
+     DELETE FROM soft 
+     WHERE num IN (
+        SELECT num 
+        FROM soft 
+        START WITH num =2
+        CONNECT BY PRIOR num = parent 
+     );
+     rollback;
+
+     SELECT * FROM soft;
+
+     --정렬
+     SELECT num,subject, LEVEL, parent
+     FROM soft 
+     START WITH num =1 
+     CONNECT BY PRIOR num=parent; 
+
+     --정렬 : ORDER BY로 정렬 시 계층구조 깨짐
+     SELECT num,subject, LEVEL, parent
+     FROM soft 
+     START WITH num =1 
+     CONNECT BY PRIOR num=parent
+     ORDER BY subject;
+
+     --정렬 : ORDER BY로 정렬 시 계층구조 깨짐
+     SELECT num,subject, LEVEL, parent
+     FROM soft 
+     START WITH num =1 
+     CONNECT BY PRIOR num=parent
+     ORDER SIBLINGS BY subject;
+        --동일한 레벨에서만 정렬
+    
+     --데이터 베이스 및 데이터 베이스의 하위를 출력하지 않음
+     SELECT num,subject, LEVEL, parent
+     FROM soft 
+     START WITH num =1 
+     CONNECT BY PRIOR num=parent AND num!=3;
+     --WHERE절이 아닌 CONNECT절에서 AND로 조건 줌  
+
+ -- ※ PIVOT과 UNPIVOT
+ --열을 행으로, 행 형태의 데이터를 컬럼으로 보여주는 행위 (서브쿼리만 가능)
+   -- ο PIVOT 절
+     -------------------------------------------------------
+     -- 예제
+      WITH temp_table AS (
+         SELECT 1 cnt, 1000 price FROM DUAL UNION ALL
+         SELECT 2 cnt, 1050 price FROM DUAL UNION ALL
+         SELECT 3 cnt, 2100 price FROM DUAL UNION ALL
+         SELECT 1 cnt, 5500 price FROM DUAL UNION ALL
+         SELECT 2 cnt, 7000 price FROM DUAL UNION ALL
+         SELECT 3 cnt, 7000 price FROM DUAL
+     )
+     SELECT cnt, SUM(price) price
+     FROM temp_table
+     GROUP BY cnt;
+
+     WITH temp_table AS (
+         SELECT 1 cnt, 1000 price FROM DUAL UNION ALL
+         SELECT 2 cnt, 1050 price FROM DUAL UNION ALL
+         SELECT 3 cnt, 2100 price FROM DUAL UNION ALL
+         SELECT 1 cnt, 5500 price FROM DUAL UNION ALL
+         SELECT 2 cnt, 7000 price FROM DUAL UNION ALL
+         SELECT 3 cnt, 7000 price FROM DUAL
+     )
+     SELECT SUM(DECODE(cnt,1,price,0))"1",
+            SUM(DECODE(cnt,2,price,0))"2",
+            SUM(DECODE(cnt,3,price,0))"3"
+     FROM temp_table;
+
+     WITH temp_table AS (
+         SELECT 1 cnt, 1000 price FROM DUAL UNION ALL
+         SELECT 2 cnt, 1050 price FROM DUAL UNION ALL
+         SELECT 3 cnt, 2100 price FROM DUAL UNION ALL
+         SELECT 1 cnt, 5500 price FROM DUAL UNION ALL
+         SELECT 2 cnt, 7000 price FROM DUAL UNION ALL
+         SELECT 3 cnt, 7000 price FROM DUAL
+     )
+     SELECT SUM(DECODE(cnt,1,price,0))"1",
+            SUM(DECODE(cnt,2,price,0))"2",
+            SUM(DECODE(cnt,3,price,0))"3"
+     FROM temp_table;
+
+     --pivot : 서브쿼리만 가능
+      WITH temp_table AS (
+         SELECT 1 cnt, 1000 price FROM DUAL UNION ALL
+         SELECT 2 cnt, 1050 price FROM DUAL UNION ALL
+         SELECT 3 cnt, 2100 price FROM DUAL UNION ALL
+         SELECT 1 cnt, 5500 price FROM DUAL UNION ALL
+         SELECT 2 cnt, 7000 price FROM DUAL UNION ALL
+         SELECT 3 cnt, 7000 price FROM DUAL
+     )
+     SELECT * FROM(
+        SELECT cnt,price FROM temp_table
+     )
+     PIVOT(
+        SUM(price) FOR cnt IN(1,2,3)
+     );
+
+     --부서에 대한 출신도별 인원수
+     SELECT * FROM (
+        SELECT city,dept
+        FROM emp
+     )
+     PVOT (
+        COUNT(dept)
+        For dept IN(
+            '총무부' AS 총무부, '개발부' AS 개발부, '영업부' AS 영업부, '인사부' AS 인사부
+            '영업부' AS 영업부, '총무부' AS 총무부, '기획부' AS 기획부, '자재부' AS 자재부
+        )
+     );
+
+     --월별 입사 인원수
+  
+     --년도에 대한 월별 판매현황
+
+
+     SELECT 년도, NVL(M01,0) AS M01, NVL(M02,0) AS M02, NVL(M03,0) AS M03, NVL(M04,0) AS M04,
+    NVL(M05,0) AS M05, NVL(M06,0) AS M06, NVL(M07,0) AS M07, NVL(M08,0) AS M08,
+    NVL(M09,0) AS M09, NVL(M10,0) AS M10, NVL(M11,0) AS M11, NVL(M12,0) AS M12
+        FROM (
+            SELECT 
+                TO_CHAR(sDate, 'YYYY') AS 년도, 
+                TO_CHAR(sDate, 'MM') AS 월, 
+                bPrice * qty AS amt
+            FROM book b
+            JOIN dsale d ON b.bcode = d.bcode
+            JOIN sale s ON d.sNum = s.sNum
+        )
+        PIVOT (
+            SUM(amt)
+            FOR 월 IN (
+                '01' AS M01, '02' AS M02, '03' AS M03, '04' AS M04,
+                '05' AS M05, '06' AS M06, '07' AS M07, '08' AS M08,
+                '09' AS M09, '10' AS M10, '11' AS M11, '12' AS M12
+            )
+        )
+        ORDER BY 년도;
+
+   -- ο UNPIVOT 절
+     -------------------------------------------------------
+     --행을 열로, 컬럼 형태를 행 형태로 보여주는 쿼리
+
+     ----------------
+    
+    --부서에 대한 출신도별 인원수
+-- 부서에 대한 출신도별 인원수
+        CREATE TABLE emp_city AS
+SELECT *
+FROM (
+    SELECT city, dept
+    FROM emp
+)
+PIVOT (
+    COUNT(dept)
+    FOR dept IN (
+        '총무부' AS 총무부,
+        '개발부' AS 개발부,
+        '영업부' AS 영업부,
+        '인사부' AS 인사부,
+        '기획부' AS 기획부,
+        '자재부' AS 자재부,
+        '홍보부' AS 홍보부
+    )
+);
+
+SELECT *
+FROM emp_city
+UNPIVOT (
+    인원수
+    FOR 부서 IN (
+        총무부 AS '총무부',
+        개발부 AS '개발부',
+        영업부 AS '영업부',
+        인사부 AS '인사부',
+        기획부 AS '기획부',
+        자재부 AS '자재부',
+        홍보부 AS '홍보부'
+    )
+);
+
+DROP TABLE emp_city PURGE;
+DROP TABLE TB_A PURGE;
+DROP TABLE TB_B PURGE;
+
+
+SELECT * FROm tab;
+
+-- ■ 고급 쿼리
+ -- ※ 정규식(Regular Expression) - 주요 함수
+    -- 1) REGEXP_LIKE(source_char, pattern [, match_parameter ] )
+       -- : 패턴이 포함된 문자열 검색
+       ---------------------------------------
+       --
+       SELECT * FROM reg;
+
+       --name 컬럼의 '한' 또는 '백'자로 시작하는 레코드
+       SELECT * FROM reg WHERE REGEXP_LIKE(name,'^[한백]');
+
+       --name 컬럼의 '강산'으로 끝나는 레코드
+       SELECT * FROM reg WHERE REGEXP_LIKE(name,'강산$');
+
+       --email 컬럼의 'com'으로 끝나는 레코드
+       SELECT * FROM reg WHERE REGEXP_LIKE(email,'com$');
+
+       --email 컬럼의 'com'으로 끝나는 레코드(대소문자 구분x)
+       SELECT * FROM reg WHERE REGEXP_LIKE(email,'com$','i');
+       
+       --email 컬럼의 'kim'을 포함하는 레코드
+       SELECT * FROM reg WHERE REGEXP_LIKE(email,'kim');
+    
+       --emial 컬럼의 'kim' 다음에 '2'가 없거나 1개 있고, 그 다음 글자는 '3'인 레코드
+       SELECT * FROM reg WHERE REGEXP_LIKE(email,'kim2?3');
+
+       --emial 컬럼의 'kim' 다음에 0-3 사이의 문자가 2번 반복되는 레코드
+       SELECT * FROM reg WHERE REGEXP_LIKE(email,'kim[0-3]{2}');
+
+       
+       --emial 컬럼의 'kim' 다음에 2-3 사이의 문자가 3-4번 반복되는 레코드
+       SELECT * FROM reg WHERE REGEXP_LIKE(email,'kim[2-3][3,4]');
+
+       --emial 컬럼의 'kim' 다음에 '1'이 아닌 레코드
+       SELECT * FROM reg WHERE REGEXP_LIKE(email,'kim[^1]');
+
+       --emial 컬럼의 'k' 로 시작하지 않는 레코드
+       SELECT * FROM reg WHERE REGEXP_LIKE(email,'^[^k]');
+
+       --이름이 한글인 레코드
+       SELECT * FROM reg WHERE REGEXP_LIKE(name,'^[가-힇]{1,10}$');
+       SELECT * FROM reg WHERE REGEXP_LIKE(name,'^[가-힇]{2,}$');
+
+       --숫자가 존재하는 email
+       SELECT * FROM reg WHERE REGEXP_LIKE(email,'[0-9]');
+
+       --이름에 영문자 포함
+       SELECT * FROM reg WHERE REGEXP_LIKE(name,'[a-z|A-Z]');
+
+
+
+    -- 2) REGEXP_REPLACE(source_char, pattern [, replace_string [, position [, occurrence[, match_parameter ] ] ] ])
+       -- : 패턴이 포함된 문자열을 다른 문자열로 치환
+       ---------------------------------------
+       --[[:digit]],[0-9] : 숫자
+       --[[:punct]] : 특수문자
+
+       SELECT REGEXP_REPLACE('!1234$56%^*[] 숫자 TEST', '[[:digit:]]', '') FROM dual;
+       SELECT REGEXP_REPLACE('!1234$56%^*[] 숫자 특수문자 TEST', '[[:digit:][:punct:]]', '') FROM dual;
+
+
+
+
+    -- 3) REGEXP_INSTR (source_char, pattern [, position [, occurrence [, return_option [, match_parameter ] ] ] ] )
+       -- : 패턴이 포함된 문자열의 위치 반환
+       ---------------------------------------
+       --
+       SELECT name,REGEXP_INSTR(tel,'[-]') FROM emp;
+
+       SELECT name,dept
+       FROM emp WHERE REGEXP_INSTR(name,'^[^이김]') =1;
+       --이씨, 김씨 제외
+
+
+    -- 4) REGEXP_SUBSTR(source_char, pattern [, position [, occurrence [, match_parameter ] ] ] )
+       -- : 문자열에 존재하는 패턴문자열을 반환
+       ---------------------------------------
+       --
+       SELECT email, REGEXP_SUBSTR(email,'[^@]+')id FROM reg;
+       -- + : 하나 이상
+       
+    -- 5) REGEXP_COUNT (source_char, pattern [, position [, match_param]])
+       -- : 문자열에 존재하는 패턴문자열의 개수 반환
+       ---------------------------------------
+       --
+       SELECT email, REGEXP_COUNT(email,'a') FROM reg;
+        --처음부터 a의 개수
+       SELECT email, REGEXP_COUNT(email,'a',3) FROM reg;
+        --세번째부터 a의 개수
+
+-- ■ 트랜잭션 
+--면접에서 많이 물어봄 
+--논리적인 작업 단위 
+ -- ※ 트랜잭션(Transaction)
+   -- ο COMMIT 과 ROLLBACK
+
+   CREATE TABLE test1(
+    num NUMBER PRIMARY KEY,
+    name VARCHAR2(30) NOT NULL,
+    content VARCHAR2(4000) NOT NULL,
+    reg_date DATE DEFAULT SYSDATE,
+    hit NUMBER DEFAULT 0
+   );
+
+   CREATE SEQUENCE test1_seq
+    START WITH 1
+    INCREMENT BY 1
+    NOMAXVALUE
+    NOCYCLE
+    NOCACHE;
+
+
+   SELECT * FROM test1;
+   SELECT * FROM seq;
+
+   INSERT INTO test1(num,name,CONTENT) VALUES (test1_seq.NEXTVAL,'a','aaa');
+   INSERT INTO test1(num,name,CONTENT) VALUES (test1_seq.NEXTVAL,'b','bbb');
+   SELECT * FROM test1;
+
+   SAVEPOINT a; --트랜잭션의 한 지점 설정
+   INSERT INTO test1(num,name,CONTENT) VALUES (test1_seq.NEXTVAL,'c','ccc');
+   
+   SELECT * FROM test1;
+
+   ROLLBACK TO a; --마지막 INSERT만 롤백
+   SELECT * FROM test1;
+
+   ROLLBACK; --전체 롤백
+   SELECT * FROM test1;
+
+   INSERT INTO test1(num,name,CONTENT) VALUES (test1_seq.NEXTVAL,'a','aaa');
+   COMMIT; 
+   --(commit 또는 DDL(create, alter,drop)을 만나면 트랜잭션 완료)
+   SELECT * FROM test1;
+
+   --커넥션 1
+   INSERT INTO test1(num,name,content) VALUES (TEST1_SEQ.nextval,'b','bbb');
+   SELECT * FROM test1;
+   
+   --커넥션 2 : sqlplus
+   cmd> sqlplus sky/"java$!"
+   sql> SELECT * FROM test1; --b출력안됨
+
+    --커넥션 1
+    commit;
+
+    --커넥션 2 : sqlplus
+    sql> SELECT * FROM test1; --b출력됨
+
+
+   -- ο 트랜잭션 관련 설정
+     -- 1) SET TRANSACTION : 다양한 트랜잭션 속성을 지정
+
+     --커넥션2 : sqlplus
+     SQL> SET TRANSACTION READ ONLY; 
+        --SELECT만 가능(INSERT,UPDATE,DELETE 불가능)
+     SQL> DELETE FROM test1; 
+        --error 발생
+     SQL> ROLLBACK;
+        --안하면 에러 발생 
+        --하면 READ ONLY 풀림
+     SQL> SET TRANSACTION READ WRITE; 
+     SQL> DELETE FROM test1; 
+     sql> SELECT * FROM test1;
+     sql> ROLLBACK;
+
+     -- 2) LOCK TABLE
+        -- : 현재 트랜잭션이 진행되고 있는 데이터에 대해 다른 다른 트랜잭션의 검색이나 변경을 막아 여러 트랜잭션이 동시에 같은 데이터를 사용하도록 설정
+     
+     --커넥션1
+     LOCK TABLE test1 IN EXCLUSIVE MODE;
+        --EXCLUSIVE : 잠긴 테이블에 SELECT만 가능
+
+     INSERT INTO tset1(num,name,content) VALUES (test1_seq.NEXTVAL,'c','ccc'); 
+     SELECT * FROM test1;
+     
+     --커넥션2 : sqlplus
+     SQL> DELETE FROM test1; --대기
+
+     --커넥션1
+     ROLLBACK;
+
+     --커넥션2
+     --대기 해제됨
+     SQL> SELECT * fROM test1;
+
+     --커넥션1
+     DELETE FROM reg;
+
+
+   -- ο COMMIT이 되지 않는 상태 확인
+      -------------------------------------------------------
+      -- 관리자(sys 또는 system) 계정에서 확인
+        SELECT s.inst_id inst, s.sid||','||s.serial# sid, s.username,
+                    s.program, s.status, s.machine, s.service_name,
+                    '_SYSSMU'||t.xidusn||'$' rollname, --r.name rollname, 
+                    t.used_ublk, 
+                   ROUND(t.used_ublk * 8192 / 1024 / 1024, 2) used_bytes,
+                   s.prev_sql_id, s.sql_id
+        FROM gv$session s,
+                  --v$rollname r,
+                  gv$transaction t
+        WHERE s.saddr = t.ses_addr
+        ORDER BY used_ublk, machine;
+        
+        commit;
+
+
+
+
+
