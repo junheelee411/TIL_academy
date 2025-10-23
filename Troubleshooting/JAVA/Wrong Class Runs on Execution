@@ -1,0 +1,5 @@
+trouble: 
+현재 위치한 클래스가 실행되지 않고, 이전에 실행된 프로젝트의 클래스가 실행됨
+
+solution:
+[Window] - [Preferences] - [Run/Debug] - [Launching] - launch the associated project 
