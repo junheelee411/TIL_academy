@@ -1,3 +1,1626 @@
 25.10.27. Mon
 
-자바 - 예외처리, 컬렉션 중요
+--자바 - 예외처리, 컬렉션 중요
+
+-- ■ PL/SQL
+ -- ※ 기본 문법
+    -- PL/SQL
+       -- : 프로그래밍언어의 특성을 가지는 SQL의 확장
+       -- : 데이터 조작과 질의 문장은 PL/SQL의 절차적 코드 안에 포함된다.
+
+     -- PL/SQL 프로그래밍 단위
+       -- ㆍPL/SQL 익명 블록
+       -- ㆍ함수
+       -- ㆍ프로시저
+       -- ㆍ패키지 : 패키지 명세, 패키지 바디
+       -- ㆍ트리거
+
+   -- ο 기본 문법
+     -------------------------------------------------------
+       -- sqlpus : DBMS_OUTPUT 출력
+        SQL> SET SERVEROUTPUT ON
+
+     -- %TYPE : 테이블의 컬럼읅 참조하는 변수 선언
+     Declare
+        vname emp.name%TYPE; --emp의 name컬럼 참조해서 타입 지정
+        vpay NUMBER;
+    BEGIN
+        SELECT name,sal+bonus INTO vname, vpay --한 줄만 나와야함
+        FROM emp
+        WHERE empNo = '1001';
+
+        DBMS_OUTPUT.PUT_LINE('이름: ' || vname); --PUT_LINE=println / 결과보는 용도x, 로고찍는 용도o
+        DBMS_OUTPUT.PUT_LINE('급여: ' || vpay);
+    END;
+    /
+
+    -- sqlpus : DBMS_OUTPUT 출력
+        SQL> SET SERVEROUTPUT ON
+
+     -- %ROWTYPE : 테이블 또는 뷰의 행을 참조하는 레코드 타입
+     Declare
+        vrec emp%ROWTYPE;
+    BEGIN
+        --SELECT * INTO vrec
+        SELECT name,sal,bonus INTO vrec.name, vrec.sal, vrec.bonus
+        FROM emp
+        WHERE empNo = '1001';
+
+        DBMS_OUTPUT.PUT_LINE('이름: ' || vrec.name); --PUT_LINE=println / 결과보는 용도x, 로고찍는 용도o
+        DBMS_OUTPUT.PUT_LINE('급여: ' || (vrec.sal + vrec.bonus));
+    END;
+    /
+
+    --레코드 유형 선언
+    DECLARE
+    TYPE MYTYPE IS RECORD
+        (
+            name emp.name%TYPE,
+            pay emp.sal%TYPE
+        );
+
+    --레코드 변수 선언
+        vrec MYTYPE;
+    BEGIN 
+        SELECT name,sal INTO vrec.name,vrec.pay
+        FROM emp
+        WHERE empNo = '1001';
+
+        DBMS_OUTPUT.PUT_LINE('이름: '||vrec.name);
+        DBMS_OUTPUT.PUT_LINE('급여: '||vrec.pay);
+    END;
+    /
+
+   -- ο 제어 구조
+     -------------------------------------------------------
+     -- IF
+     DECLARE
+        a NUMBER :=10; --:= 대입 연산자
+    BEGIN
+        IF MOD(a,6) = 0 THEN
+            DBMS_OUTPUT.PUT_LINE(a ||' : 2 또는 3의 배수');
+        ELSIF MOD(a,3) = 0 THEN
+            DBMS_OUTPUT.PUT_LINE(a ||' : 3의 배수');
+        ELSIF MOD(a,2) = 0 THEN
+            DBMS_OUTPUT.PUT_LINE(a ||' : 2의 배수');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE(a ||' : 2또는 3의 배수가 아님');
+        END IF;
+    END;
+    /
+
+    DECLARE
+        vname VARCHAR2(30);
+        vpay NUMBER;
+        vtax NUMBER;
+    BEGIN
+        SELECT name,sal+bonus INTO vname,vpay
+        FROM emp
+        WHERE empNo = '1001';
+
+        IF vpay >=3000000 THEN
+            vtax :=ROUND(vpay*0.03);
+        ELSIF vpay>=2000000 THEN
+            vtax := ROUND(vpay*0.02);
+        ELSE
+            vtax:=0;
+        END IF;
+
+        DBMS_OUTPUT.PUT_LINE('이름' || vname);
+        DBMS_OUTPUT.PUT_LINE('급여' || vpay);
+        DBMS_OUTPUT.PUT_LINE('세금' || vtax);
+    END;
+    /
+
+     -------------------------------------------------------
+     -- CASE
+
+     DECLARE
+        vname emp.name%TYPE;
+        vrrn emp.rrn%TYPE;
+        vgender varchar2(6);
+     BEGIN
+        SELECT name,rrn INTO vname,vrrn
+        FROM emp
+        WHERE empNo = '1001';
+
+        CASE SUBSTR(vrrn, 8,1)
+            WHEN '1' THEN vgender:='남자';
+            WHEN '2' THEN vgender:='여자';
+            WHEN '3' THEN vgender:='남자';
+            WHEN '4' THEN vgender:='여자';
+            ELSE vgender :='외국인';
+        END CASE;
+        DBMS_OUTPUT.PUT_LINE('이름 ' || vname);
+        DBMS_OUTPUT.PUT_LINE('성별 ' || vgender);
+     END;
+     /
+
+       DECLARE
+        vname VARCHAR2(30);
+        vpay NUMBER;
+        vtax NUMBER;
+    BEGIN
+        SELECT name,sal+bonus INTO vname,vpay
+        FROM emp
+        WHERE empNo = '1001';
+
+        CASE
+        WHEN vpay >=3000000 THEN
+            vtax :=ROUND(vpay*0.03);
+        WHEN vpay>=2000000 THEN
+            vtax := ROUND(vpay*0.02);
+        ELSE
+            vtax:=0;
+        END CASE;
+
+        DBMS_OUTPUT.PUT_LINE('이름 ' || vname);
+        DBMS_OUTPUT.PUT_LINE('급여 ' || vpay);
+        DBMS_OUTPUT.PUT_LINE('세금 ' || vtax);
+    END;
+    /
+
+
+     -------------------------------------------------------
+     -- basic LOOP, EXIT, CONTINUE
+        DECLARE
+            n NUMBER :=0;
+            s NUMBER :=0;
+        BEGIN
+            LOOP
+                n:=n+1;
+                s:=s+n;
+                EXIT WHEN n=100;
+            END LOOP;
+            DBMS_OUTPUT.PUT_LINE('결과 ' || s);
+        END;
+        /
+
+        DECLARE
+            n NUMBER :=0;
+        BEGIN
+                WHILE n<100 LOOP
+                n:=n+1;
+                CONTINUE WHEN MOD(n,2)= 0 OR MOD(n,3)=0;
+                DBMS_OUTPUT.PUT(n || '  ');
+                    --DBMS_OUTPUT.NEW_LINE(); 또는
+                    --DBMS_OUTPUT.PUT_LINE();을 만나야 출력
+            END LOOP;
+            DBMS_OUTPUT.NEW_LINE();
+        END;
+        /
+
+
+     -------------------------------------------------------
+     -- WHILE-LOOP
+        --1~100까지의 합
+        DECLARE
+            n NUMBER :=0;
+            s NUMBER :=0;
+        BEGIN
+            WHILE n<100 LOOP
+                n:=n+1;
+                s:=s+n;
+            END LOOP;
+            DBMS_OUTPUT.PUT_LINE('결과: ' || s);
+        END;
+        /
+
+        -- 1~100까지 홀수 합
+         DECLARE
+            n NUMBER :=1;
+            s NUMBER :=0;
+        BEGIN
+            WHILE n<100 LOOP
+                s:=s+n;
+                n:=n+2;
+            END LOOP;
+            DBMS_OUTPUT.PUT_LINE('결과: ' || s);
+        END;
+        /
+        
+
+        -- 2~9단까지 구구단 출력
+        DECLARE
+            n NUMBER := 2;
+            s NUMBER :=1;   
+        BEGIN
+            DBMS_OUTPUT.PUT_LINE('구구단');
+            DBMS_OUTPUT.PUT_LINE('');
+
+            WHILE n <= 9 LOOP
+            DBMS_OUTPUT.PUT_LINE('   '||n||'단');
+            DBMS_OUTPUT.PUT_LINE('');
+
+                s := 1;
+                WHILE s <= 9 LOOP
+                    DBMS_OUTPUT.PUT_LINE(n || ' * ' || s || ' = ' || (n * s));
+                    s := s + 1;
+                END LOOP;
+                n := n + 1;
+                DBMS_OUTPUT.PUT_LINE(''||'');
+            END LOOP;
+        END;
+        /
+
+
+
+
+     -------------------------------------------------------
+     -- FOR-LOOP : FOR~LOOP에서 반복에 사용되는 변수는 선언 X
+
+     DECLARE
+         s NUMBER :=0;
+     BEGIN
+        FOR n IN 1..100 LOOP
+        s:=s+n;
+        END LOOP;
+        DBMS_OUTPUT.PUT_LINE('결과 ' || s);
+     END;
+     /
+
+     --거꾸로 반복
+     SET SERVEROUTPUT ON SIZE UNLIMITED
+        BEGIN
+        FOR n IN REVERSE 65..90 LOOP
+            DBMS_OUTPUT.PUT(CHAR(n));
+        END LOOP;
+        DBMS_OUTPUT.NEW_LINE();
+    END;
+    /
+
+     -------------------------------------------------------
+     -- SQL Cursor FOR LOOP
+     DECLARE
+     BEGIN
+        FOR rec IN (SELECT empNo,name,sal FROM emp) LOOP   
+            DBMS_OUTPUT.PUT_LINE(rec.empNo ||  ' ' || rec.name || ' ' ||rec.sal);
+        END LOOP;
+    END;
+    /
+
+    DECLARE
+     BEGIN
+        FOR rec IN (SELECT empNo,name,sal+bonus pay FROM emp) LOOP   
+            DBMS_OUTPUT.PUT_LINE(rec.empNo ||  ' ' || rec.name || ' ' ||rec.pay);
+        END LOOP;
+    END;
+    /
+
+-- ■ PL/SQL
+ -- ※ 프로시저
+     -- : 자주 실행해야 하는 업무 흐름(SQL)을 미리 작성하여 데이터베이스 내에 저장해 두었다가 필요할 때마다 호출하여 실행
+     -------------------------------------------------------
+     --
+     SELECT * FROM RECYCLEBIN;
+     SELECT * FROM seq;
+
+     CREATE TABLE test(
+        num NUMBER PRIMARY KEY,
+        name VARCHAR2(30) NOT NULL,
+        score NUMBER(3) NOT NULL,
+        grade VARCHAR2(10) NOT NULL
+     );
+
+
+     
+     CREATE SEQUENCE test_seq
+        INCREMENT BY 1
+        START WITH 1
+        NOMAXVALUE
+        NOCYCLE
+        NOCACHE;
+
+    --프로시저 작성
+    CREATE PROCEDURE pInsertTest
+    IS
+    BEGIN
+        INSERT INTO test(num, name, score, grade) VALUES (test_seq.NEXTVAL,'홍길동',80,'우');
+        COMMIT;
+    END;
+    /
+
+
+
+    --프로시저 목록 확인
+    SELECT * FROM user_procedures;
+    SELECT * FROM user_procedures WHERE object_name = 'PINSERTTEST';
+
+    --객체의 의존관계 확인
+    SELECT * FROM  USER_DEPENDENCIES WHERE name = 'PINSERTTEST';
+
+    --소스 확인
+    SELECT * FROM user_source;
+
+    --프로시저 실행
+    EXEC pInsertTest;
+
+    --프로시저 수정
+        --OR REPLACE : 존재하면 수정, 없으면 만듦
+        --IN 파라미터 : 프로시저로 전달되는 인수(읽기 전용), 디폴트(생략 가능)
+        --파라미터에서 타입의 크기는 명시하지 않는다.
+    CREATE OR REPLACE PROCEDURE pInsertTest
+    (
+        pName IN VARCHAR2,
+        --pScore IN test.name%TYPE
+        pScore IN NUMBER
+    )
+    IS
+        vGrade VARCHAR2(10);
+    BEGIN
+        IF pScore >=90 THEN vGrade :='A';
+        ELSIF pScore >=80 THEN vGrade :='B';
+        ELSIF pScore >=70 THEN vGrade :='C';
+        ELSIF pScore >=60 THEN vGrade :='D';
+        ELSE vGrade :='F';
+        END IF;
+        INSERT INTO test(num,name,score,grade) VALUES
+            (test_seq.NEXTVAL, pName,pScore,vGrade);
+            COMMIT;
+    END;
+    /
+
+    EXEC pInsertTest('김자바',95)
+    EXEC pInsertTest('홍자바',150)
+    --예외 발생
+    EXEC pInsertTest('홍자바',100)
+
+
+
+    --점수가 0~100점 이외이면 예외 발생
+        --RAISE_APPLICATION_ERROR(error-code, 'error-text');
+        --사용자 정의 예외 발상
+        --에러코드 : -20999~-20000 사이의 수
+    CREATE OR REPLACE PROCEDURE pInsertTest
+    (
+        pName IN VARCHAR2,
+        --pScore IN test.name%TYPE
+        pScore IN NUMBER
+    )
+    IS
+        vGrade VARCHAR2(10);
+    BEGIN
+        IF pScore <0 OR pScore > 100 THEN 
+            RAISE_APPLICATION_ERROR(-20001, '점수: 0~100 사이만 입력 가능');
+        END IF;
+        IF pScore >=90 THEN vGrade :='A';
+        ELSIF pScore >=80 THEN vGrade :='B';
+        ELSIF pScore >=70 THEN vGrade :='C';
+        ELSIF pScore >=60 THEN vGrade :='D';
+        ELSE vGrade :='F';
+        END IF;
+        INSERT INTO test(num,name,score,grade) VALUES
+            (test_seq.NEXTVAL, pName,pScore,vGrade);
+            COMMIT;
+    END;
+    /
+
+
+    --프로시저 작성 : 데이터 수정
+       CREATE OR REPLACE PROCEDURE pUpdateTest
+    (
+        pNum IN NUMBER,
+        pName IN VARCHAR2,
+        --pScore IN test.name%TYPE
+        pScore IN NUMBER
+    )
+    IS
+        vGrade VARCHAR2(10);
+    BEGIN
+        IF pScore <0 OR pScore > 100 THEN 
+            RAISE_APPLICATION_ERROR(-20001, '점수: 0~100 사이만 입력 가능');
+        END IF;
+        IF pScore >=90 THEN vGrade :='A';
+        ELSIF pScore >=80 THEN vGrade :='B';
+        ELSIF pScore >=70 THEN vGrade :='C';
+        ELSIF pScore >=60 THEN vGrade :='D';
+        ELSE vGrade :='F';
+        END IF;        
+        UPDATE test SET name=pName,score=pScore,grade=vGrade
+        WHERE num=pNum;
+        COMMIT;
+    END;
+    /
+
+    EXEC PUPDATETEST(6,'다자바',50)
+    SELECT * FROM test;
+
+    --프로시저 작성 : 데이터 삭제
+      CREATE OR REPLACE PROCEDURE pDeleteTest
+    (
+        pNum IN NUMBER
+    )
+    IS
+    BEGIN
+        DELETE FROM TEST
+        WHERE num=pnum;
+        commit;
+    END;
+    /
+    
+    EXEC PDeleteTEST(5)
+    SELECT * FROM test;
+
+    --하나의 레코드 출력
+    CREATE OR REPLACE PROCEDURE pSelectOneTest
+    (
+        pNum IN NUMBER
+    )
+    IS
+        --rec test%ROWTYPE; 테스트 테이블의 레코드 참조
+
+        TYPE MYTYPE IS RECORD
+        (
+            num test.num%TYPE, 
+            name test.name%TYPE,
+            score test.score%TYPE,
+            grade test.grade%TYPE
+        );
+        rec MYTYPE;
+    BEGIN
+        SELECT num,name,score,grade INTO rec
+        FROM test
+        WHERE num=pNum;
+        DBMS_OUTPUT.PUT_LINE(rec.num || ' : ' || rec.name || ' : ' || rec.score || ' : ' || rec.grade);
+    END;
+    /
+
+    SELECT * FROM test;
+    EXEC PSELECTONETEST(1)
+
+    --테이블의 전체 리스트 출력 
+    CREATE OR REPLACE PROCEDURE pSelectAllTest
+    IS
+    BEGIN
+         FOR rec IN (SELECT num, name, score, grade FROM test) LOOP
+             DBMS_OUTPUT.PUT_LINE(rec.num || ' : ' || rec.name || ' : ' || rec.score || ' : ' || rec.grade);
+         END LOOP;
+    END;
+    /
+
+    EXEC PSELECTALLTEST
+
+    SELECT * FROM user_procedures;
+    DROP table test PURGE;
+    DROP table test PURGE;
+    SELECT * FROM  SEQUENCE;
+    DROP PROCEDURE PDELETETEST;
+    DROP SEQUENCE test_seq;
+    SELECT sequence_name FROM user_sequences;
+
+
+    -------------------------------------------------------
+    --세 개의 테이블을 이용한 프로시저 예시
+    CREATE TABLE test1(
+        num NUMBER PRIMARY KEY,
+        name VARCHAR2(30) NOT NULL
+    );
+
+    CREATE TABLE test2(
+        num NUMBER PRIMARY KEY,
+        birth DATE NOT NULL,
+        FOREIGN KEY(num) REFERENCES test1(num)
+    );
+
+    CREATE TABLE test3(
+        num NUMBER PRIMARY KEY,
+        score NUMBER(3) NOT NULL,
+        grade VARCHAR2(10) NOT NULL,
+        FOREIGN KEY(num) REFERENCES test1(num)
+    );
+
+    CREATE SEQUENCE test_seq
+        INCREMENT BY 1
+        START WITH 1
+        NOMAXVALUE
+        NOCYCLE
+        NOCACHE;
+
+     --세 개의 테이블에 데이터를 추가하는 프로시저 작성
+     CREATE OR REPLACE PROCEDURE pInsertTest
+     (
+        pName VARCHAR2,
+        pBirth VARCHAR2,
+        pScore NUMBER
+     )
+     IS
+        vGrade VARCHAR2(10);
+    BEGIN
+        IF pScore<0 or pScore > 100 THEN
+        RAISE_APPLICATION_ERROR(-20001,'점수는 0~100 사이만 입력 가능');
+        END IF;
+
+        IF pScore>=80 THEN vGrade:='우수';
+        ELSIF pScore>=60 THEN vGrade:='보통';
+        ELSE vGrade:='미달';
+        END IF;
+
+        INSERT INTO test1(num,name) VALUES (test_seq.NEXTVAL,pName);
+        INSERT INTO test2(num,birth) VALUES (test_seq.CURRVAL,TO_DATE(pBirth,'YYYY-MM-DD'));
+        INSERT INTO test3(num,score,grade) VALUES (test_seq.CURRVAL,pScore,vGrade);
+        --INSERT ALL
+        -- INTO test1(num,name) VALUES (test_seq.NEXTVAL,pName)
+        -- INTO test2(num,birth) VALUES (test_seq.CURRVAL,TO_DATE(pBirth,'YYYY-MM-DD'))
+        -- INTO test3(num,score,grade) VALUES (test_seq.CURRVAL,pScore,vGrade)
+        -- SELECT * FROM dual;
+        commit;
+    END;
+    /
+
+    EXEC pInsertTest('김자바','2000-10-10',85)
+
+    SELECT * FROM test1;
+    SELECT * FROM test2;
+    SELECT * FROM test3;
+
+    EXEC pInsertTest('이자바','10/10/1995',75)
+    --하나의 테이블이라도 INSERT되지 않으면 전체가 ROLLBACK됨
+    
+    SELECT * FROM test1;
+    SELECT * FROM test2;
+    SELECT * FROM test3;
+
+    --세 개의 테이블의 데이터를 수정하느 프로시저 작성
+     CREATE OR REPLACE PROCEDURE pUpdateTest
+      (
+        pnum NUMBER,
+        pName VARCHAR2,
+        pBirth VARCHAR2,
+        pScore NUMBER
+     )
+     IS
+        vGrade VARCHAR2(10);
+    BEGIN
+        IF pScore<0 or pScore > 100 THEN
+        RAISE_APPLICATION_ERROR(-20001,'점수는 0~100 사이만 입력 가능');
+        END IF;
+
+        IF pScore>=80 THEN vGrade:='우수';
+        ELSIF pScore>=60 THEN vGrade:='보통';
+        ELSE vGrade:='미달';
+        END IF;
+        UPDATE test1 SET name=pname where num=pnum;
+        UPDATE test2 SET birth=TO_DATE(pBirth,'YYYY-MM-DD') where num=pnum;
+        UPDATE test3 SET score=pScore, grade=vGrade where num=pnum
+        commit;
+    END;
+    /
+
+    EXEC pUpdateTest(1,'김자바','2000-10-10',75)
+
+    SELECT * FROM test1;
+    SELECT * FROM test2;
+    SELECT * FROM test3;
+
+
+    --프로시저 작성 : 데이터 삭제
+     CREATE OR REPLACE PROCEDURE pDeleteTest
+        (pnum IN NUMBER)
+        IS
+    BEGIN
+        DELETE FROM test2 where num=pnum;
+        DELETE FROM test3 where num=pnum;
+        DELETE FROM test1 where num=pnum;
+        commit;
+    END;
+    /
+
+    EXEC pDeleteTest(1)
+
+    SELECT * FROM test1;
+    SELECT * FROM test2;
+    SELECT * FROM test3;
+
+    --번호에 해당하는 레코드 출력
+    CREATE OR REPLACE PROCEDURE pSelectOneTest
+    (
+        pNum IN NUMBER
+    )
+    IS
+        TYPE MYTYPE IS RECORD
+        (
+            num test1.num%TYPE,
+            name test1.name%TYPE,
+            birth test2.birth%TYPE,
+            score test3.score%TYPE,
+            grade test3.grade%TYPE
+        );
+        rec MYTYPE;
+    BEGIN
+        SELECT t1.num,name,birth,score,grade INTO rec
+        FROM test1 t1
+        JOIN test2 t2 ON t1.num=t2.num
+        JOIN test3 t3 ON t1.num=t3.num
+        WHERE t1.num = pNum;
+        DBMS_OUTPUT.PUT_LINE(rec.num || ' : '||  rec.name || ' : ' || rec.birth || ' : ' || rec.score || ' : ' ||rec.grade); 
+    END;
+    /
+
+    EXEC pSelectOneTest(3)
+
+    ---------------------------------------------------------
+    --OUT 파라미터 : 프로시저가 결과를 호출자에게 돌려주는 기능
+        --OUT 파라미터는 프로시저 안에서 변경 가능
+
+    CREATE OR REPLACE PROCEDURE pSelectOutTest
+    (
+        pNum IN NUMBER,
+        pName OUT VARCHAR2,
+        pScore OUT NUMBER
+    )
+    IS
+    BEGIN
+        SELECT name,score INTO pName,pScore
+        FROM test1 t1
+        JOIN test3 t3 ON t1.num = t3.num
+        WHERE t1.num = pNum; 
+    END;
+    /
+
+    SELECT * FROM test1;
+
+    --OUT 파라미터 확인용 프로시저
+    CREATE OR REPLACE PROCEDURE pSelectResultTest
+    IS
+        vName VARCHAR2(30);
+        vScore NUMBER(3);
+    BEGIN
+        --다른 프로시저 호출
+        pSelectOutTest(3,vName,vScore);
+        DBMS_OUTPUT.PUT_LINE(vName || ' : ' || vScore);
+    END;
+    /
+
+    EXEC pSelectResultTest
+    SELECT * FROM user_procedures;
+
+
+ --자바로 던지는 것이 목적임. 위에것은 사용 x
+
+ -- ※ 함수
+    -- : 사용자가 직접 로직을 구현하여 구현한 함수
+    -- : 내장 함수(빌트인 함수)처럼 쿼리에서 호출하거나 EXECUTE 문을 통해 실행 가능
+    -- 함수의 파라미터, RETURN 타입에는 타입의 크기를 명시하지 않는다.
+
+     -------------------------------------------------------
+     --합구하기
+     CREATE OR REPLACE FUNCTION fnSum
+     (
+        n IN NUMBER
+     )
+     RETURN NUMBER
+     IS
+        s NUMBER :=0;
+        BEGIN
+            FOR i IN 1..n LOOP
+            s:=s+i;
+        END LOOP;
+        RETURN s;
+     END;
+     /
+
+     SELECT * FROM user_procedures;
+     SELECT fnSum(100) from dual;
+
+     --a의 b승값을 계산하는 함수
+
+        CREATE OR REPLACE FUNCTION fnPow
+    (
+        a IN NUMBER,
+        b IN NUMBER
+    )
+    RETURN NUMBER
+    IS
+        s NUMBER := 1;
+    BEGIN
+        IF b >= 0 THEN
+            FOR n IN 1..b LOOP
+                s := s * a;
+            END LOOP;
+        ELSE
+            FOR n IN 1..(-b) LOOP
+                s := s / a;
+            END LOOP;
+        END IF;
+
+        RETURN s;
+    END;
+    /
+
+     SELECT fnPow(2,10), fnPow(2,-2) FROM dual;
+
+     --주민번호를 이용하여 성별, 생년월일, 나이를 구하는 함수
+     CREATE OR REPLACE FUNCTION fnGender
+     (
+        rrn VARCHAR2
+     )
+     RETURN VARCHAR2
+     IS
+        s NUMBER(1);
+        b VARCHAR2(6);
+    BEGIN
+        IF LENGTH(rrn)=14 THEN
+            s:=SUBSTR(rrn,8,1);
+        ELSIF LENGTH(rrn)=13 THEN
+            s:=SUBSTR(rrn,7,1);
+        ELSE 
+            RAISE_APPLICATION_ERROR(-20001,'주민번호 오류');
+        END IF;
+
+        IF MOD(s,2) = 1 THEN
+            b:='남자';
+        ELSE
+            b:='여자';
+        END IF;
+
+        RETURN b;
+    END;
+    /
+
+    SELECT name,rrn,fnGender(rrn) FROM
+
+    CREATE OR REPLACE FUNCTION fnBirth
+     (
+        rrn VARCHAR2
+     )
+     RETURN DATE
+     IS
+        s VARCHAR2(1);
+        b VARCHAR2(8);
+    BEGIN
+        IF LENGTH(rrn)=14 THEN
+            s:=SUBSTR(rrn,8,1);
+        ELSIF LENGTH(rrn)=13 THEN
+            s:=SUBSTR(rrn,7,1);
+        ELSE 
+            RAISE_APPLICATION_ERROR(-20001,'주민번호 오류');
+        END IF;
+
+        b:=SUBSTR(rrn,1,6);
+        CASE
+            WHEN s IN (1,2,5,6) THEN b:='19' || b;
+            WHEN s IN (3,4,7,8) THEN b:='20' || b;
+            ELSE b:='18' || b;
+        END CASE;
+
+        RETURN TO_DATE(b,'YYYYMMDD');
+    END;
+    /
+
+    --나이
+        CREATE OR REPLACE FUNCTION fnAge
+     (
+        birth DATE
+     )
+     RETURN NUMBER
+     IS
+     BEGIN
+        RETURN TRUNC(MONTHS_BETWEEN(SYSDATE, birth)/12);
+    END;
+    /
+
+    SELECT name,rrn,fnGender(rrn),fnBirth(rrn),fnAge(fnBirth(rrn)) FROM emp;
+
+     -------------------------------------------------------
+     -- 문제
+     -- score1 테이블 작성
+          hak     문자(20)  기본키
+          name   문자(30)  NOT  NULL
+          kor      숫자(3)     NOT  NULL
+          eng      숫자(3)    NOT  NULL
+          mat      숫자(3)    NOT  NULL
+          
+          CREATE table score1
+          (
+            hak VARCHAR2(20) PRIMARY KEY,
+            name VARCHAR2(30) NOT NULL,
+            kor NUMBER(3) NOT NULL,
+            eng NUMBER(3) NOT NULL,
+            mat NUMBER(3) NOT NULL
+          );
+
+      -- score2 테이블 작성
+          hak     문자(20)  기본키, score1 테이블의 참조키
+          kor      숫자(2,1)     NOT  NULL
+          eng      숫자(2,1)    NOT  NULL
+          mat      숫자(2,1)    NOT  NULL
+
+          CREATE table score2
+          (
+            hak VARCHAR2(20) PRIMARY KEY,
+            kor NUMBER(3) NOT NULL,
+            eng NUMBER(3) NOT NULL,
+            mat NUMBER(3) NOT NULL,
+           
+            CONSTRAINT fk_score2_hak
+            FOREIGN KEY (hak)
+            REFERENCES score1(hak)
+          );
+     
+     -- 평점을 구하는 함수 작성
+         -- 함수명 : fnGrade(s)
+             95~100:4.5    90~94:4.0
+             85~89:3.5     80~84:3.0
+             75~79:2.5     70~74:2.0
+             65~69:1.5     60~64:1.0
+             60미만 0
+
+        CREATE OR REPLACE FUNCTION fnGrade
+        (
+            pscore IN NUMBER
+        )
+        RETURN NUMBER
+        IS
+            n NUMBER(2,1);
+        BEGIN
+            IF pScore>100 OR pScore<0 THEN 
+                RAISE_APPLICATION_ERROR(-20001,'성적 오류');
+            END IF;
+            IF 95<=score THEN grade:=4.5;
+            ELSIF 90<=score THEN grade:=4.0;
+            ELSIF 85<=score THEN grade:=3.5;
+            ELSIF 80<=score THEN grade:=3.0;
+            ELSIF 75<=score THEN grade:=2.5;
+            ELSIF 70<=score THEN grade:=2.0;
+            ELSIF 65<=score THEN grade:=1.5;
+            ELSIF 60<=score THEN grade:=1.0;
+            ELSE grade:=0;
+            END IF;
+            RETURN  grade;
+        END;
+        /
+       
+      -- score1 테이블과 score2 테이블에 데이터를 추가하는 프로시저 만들기
+         프로시저명 : pScoreInsert
+         실행예 : EXEC pScoreInsert('1111', '가가가', 80, 60, 75);
+   
+         score1 테이블 => '1111', '가가가', 80, 60, 75  정보 추가
+         score2 테이블 => '1111',            3.0, 1.0, 2.5 정보 추가(국, 영, 수 점수가 평점으로 계산되어 추가)
+   
+         단, 국어, 영어, 수학 점수는 0~100 사이가 아니면 예외 발생하고 종료
+
+         CREATE OR REPLACE PROCEDURE pScoreInsert
+     (
+        pHak IN VARCHAR2,
+        pName IN VARCHAR2,
+        pKor IN NUMBER,
+        pEng IN NUMBER,
+        pMat IN NUMBER
+     )
+     IS
+    BEGIN
+        INSERT INTO score1(hak,name,kor,eng,mat) VALUES (pHak,pName,pKor,pEng,pMat);
+        INSERT INTO score2(hak,kor,eng,mat) VALUES (pHak,fnGrade(pGrade));
+        commit;
+    END;
+    /
+
+
+ 
+     -- score1 테이블과 score2 테이블에 데이터를 수정하는 프로시저 만들기
+         프로시저명 : pScoreUpdate
+         실행예 : EXEC pScoreUpdate('1111', '가가가', 90, 60, 75);
+   
+         score1 테이블 => 학번이 '1111' 인 자료를  '가가가', 90, 60, 75  으로 정보 수정
+         score2 테이블 => 학번이 '1111' 인 자료를           4.0, 1.0, 2.5 으로 정보 수정(국, 영, 수 점수가-- ■ PL/SQL
+ -- ※ 프로시저
+     -- : 자주 실행해야 하는 업무 흐름(SQL)을 미리 작성하여 데이터베이스 내에 저장해 두었다가 필요할 때마다 호출하여 실행
+
+     -------------------------------------------------------
+     --
+     SELECT * FROM tab;
+     SELECT * FROM seq;
+
+     CREATE  TABLE  test (
+          num  NUMBER  PRIMARY  KEY,
+          name  VARCHAR2(30)  NOT  NULL,
+          score  NUMBER(3)  NOT  NULL,
+          grade  VARCHAR2(10)  NOT  NULL
+     );
+
+     SELECT * FROM tab;
+
+     CREATE  SEQUENCE  test_seq
+           INCREMENT  BY  1
+           START  WITH  1
+           NOMAXVALUE
+           NOCYCLE
+           NOCACHE;
+
+     SELECT * FROM seq;
+
+     -- 프로시저 작성
+     CREATE  PROCEDURE  pInsertTest
+     IS
+     BEGIN
+            INSERT INTO  test(num, name, score, grade) VALUES (test_seq.NEXTVAL, '홍길동', 80, '우');
+            COMMIT;
+     END;
+     /
+
+    -- 프로시저 목록 확인
+       SELECT * FROM user_procedures;
+       SELECT * FROM user_procedures WHERE object_name = 'PINSERTTEST';
+
+    -- 객체의 의존 관계 확인
+       SELECT * FROM user_dependencies WHERE name = 'PINSERTTEST';
+
+    -- 소스 확인
+        SELECT * FROM user_source;
+
+    -- 프로시저 실행
+       EXEC pInsertTest;
+       
+       SELECT * FROM test;
+
+    -- 프로시저 수정
+       -- OR REPLACE : 존재하면 수정, 없으면 만듬
+       -- IN 파라미터 : 프로시저로 전달되는 인수. 읽기 전용. 디폴트(생략가능)
+       -- 파라미터에서 타입의 크기는 명시하지 않는다.
+
+     CREATE  OR REPLACE PROCEDURE  pInsertTest
+     (
+            pName  IN  VARCHAR2,
+           -- pName  IN  test.name%TYPE,
+            pScore  IN  NUMBER
+     )
+     IS
+            vGrade  VARCHAR2(10);
+     BEGIN
+           IF pScore >= 90 THEN vGrade := 'A';
+           ELSIF pScore >= 80 THEN vGrade := 'B';
+           ELSIF pScore >= 70 THEN vGrade := 'C';
+           ELSIF pScore >= 60 THEN vGrade := 'D';
+           ELSE vGrade := 'F';
+           END IF;
+
+            INSERT INTO  test(num, name, score, grade) VALUES
+                     (test_seq.NEXTVAL, pName, pScore, vGrade);
+            COMMIT;
+     END;
+     /
+
+    EXEC  pInsertTest('김자바', 95);
+    SELECT * FROM test;
+
+    EXEC  pInsertTest('다자바', 130);
+    SELECT * FROM test;
+
+    -- 점수가 0~100 이외이면 예외 발생
+       -- RAISE_APPLICATION_ERROR(에러코드, '메시지')
+       --   : 사용자 정의 예외 발생
+       --   : 에러코드 : -20999 ~ -20000 사이의수
+
+     CREATE  OR REPLACE PROCEDURE  pInsertTest
+     (
+            pName  IN  VARCHAR2,
+            pScore  IN  NUMBER
+     )
+     IS
+            vGrade  VARCHAR2(10);
+     BEGIN
+           IF  pScore < 0  OR  pScore > 100 THEN 
+               RAISE_APPLICATION_ERROR(-20001, '점수는 0~100 사이만 가능합니다.');
+           END IF;
+
+           IF pScore >= 90 THEN vGrade := 'A';
+           ELSIF pScore >= 80 THEN vGrade := 'B';
+           ELSIF pScore >= 70 THEN vGrade := 'C';
+           ELSIF pScore >= 60 THEN vGrade := 'D';
+           ELSE vGrade := 'F';
+           END IF;
+
+            INSERT INTO  test(num, name, score, grade) VALUES
+                     (test_seq.NEXTVAL, pName, pScore, vGrade);
+            COMMIT;
+     END;
+     /
+
+    EXEC  pInsertTest('홍자바', 150); 
+           -- 예외발생
+    SELECT * FROM test;
+
+    EXEC  pInsertTest('홍자바', 100);
+    SELECT * FROM test;
+
+
+    -- 프로시저 작성 : 데이터 수정
+     CREATE  OR REPLACE PROCEDURE  pUpdateTest
+     (
+            pNum   IN  NUMBER,
+            pName  IN  VARCHAR2,
+            pScore  IN  NUMBER
+     )
+     IS
+            vGrade  VARCHAR2(10);
+     BEGIN
+           IF  pScore < 0  OR  pScore > 100 THEN 
+               RAISE_APPLICATION_ERROR(-20001, '점수는 0~100 사이만 가능합니다.');
+           END IF;
+
+           IF pScore >= 90 THEN vGrade := 'A';
+           ELSIF pScore >= 80 THEN vGrade := 'B';
+           ELSIF pScore >= 70 THEN vGrade := 'C';
+           ELSIF pScore >= 60 THEN vGrade := 'D';
+           ELSE vGrade := 'F';
+           END IF;
+
+           UPDATE  test  SET  name = pName, score = pScore, grade = vGrade
+           WHERE num = pNum;
+            COMMIT;
+     END;
+     /
+
+    EXEC pUpdateTest(1, '이자바', 70);
+    SELECT * FROM test;
+
+    EXEC pUpdateTest(5, '다자바', 55);
+    SELECT * FROM test;
+
+    -- 프로시저 작성 : 데이터 삭제
+     CREATE  OR REPLACE PROCEDURE  pDeleteTest
+     (
+            pNum   IN  NUMBER
+     )
+     IS
+     BEGIN
+           DELETE FROM test
+           WHERE num = pNum;
+           COMMIT;
+     END;
+     /
+
+    EXEC pDeleteTest(1);
+    SELECT * FROM test;
+
+    --  하나의 레코드 출력
+    CREATE  OR  REPLACE  PROCEDURE  pSelectOneTest
+    (
+           pNum  IN  NUMBER
+    )
+    IS
+        -- rec  test%ROWTYPE;
+
+        TYPE  MYTYPE  IS  RECORD
+        (
+              num  test.num%TYPE,
+              name test.name%TYPE,
+              score test.score%TYPE,
+              grade test.grade%TYPE
+        );
+        rec  MYTYPE;
+   BEGIN
+        SELECT num, name, score, grade  INTO  rec 
+        FROM test
+        WHERE  num = pNum;
+
+        DBMS_OUTPUT.PUT_LINE( rec.num || ' : ' || rec.name || ' : ' || rec.score || ' : ' || rec.grade );
+   END;
+   /
+
+   SELECT * FROM test;
+
+   EXEC  pSelectOneTest( 2 );
+
+  -- test 테이블의 전체 리스트 출력
+  CREATE  OR  REPLACE  PROCEDURE  pSelectAllTest
+  IS
+  BEGIN
+         FOR  rec  IN  ( SELECT num, name, score, grade FROM test ) LOOP
+             DBMS_OUTPUT.PUT_LINE( rec.num || ' : ' || rec.name || ' : ' || rec.score || ' : ' || rec.grade );
+         END LOOP;
+  END;
+  /
+  
+  EXEC pSelectAllTest;
+
+  SELECT * FROM user_procedures;
+
+  DROP  PROCEDURE  pInsertTest;
+  DROP  PROCEDURE  pUpdateTest;
+  DROP  PROCEDURE  pDeleteTest;
+  DROP  PROCEDURE  pSelectOneTest;
+  DROP  PROCEDURE  pSelectAllTest;
+
+  DROP TABLE  test PURGE;
+  DROP SEQUENCE test_seq;
+
+  SELECT * FROM user_procedures;
+  SELECT * FROM tab;
+  SELECT * FROM seq;
+
+
+  -- ------------------------------------------
+  -- 세개의 테이블을 이용한 프로시저 예
+  CREATE  TABLE  test1 (
+         num  NUMBER  PRIMARY  KEY,
+         name  VARCHAR2(30)  NOT  NULL
+  );
+
+  CREATE  TABLE  test2 (
+         num  NUMBER  PRIMARY  KEY,
+         birth  DATE  NOT  NULL,
+         FOREIGN  KEY(num)  REFERENCES test1(num)
+  );
+
+  CREATE  TABLE  test3 (
+         num  NUMBER  PRIMARY  KEY,
+         score NUMBER(3) NOT NULL,
+         grade VARCHAR2(10) NOT NULL,
+         FOREIGN  KEY(num)  REFERENCES test1(num)
+  );
+
+  CREATE  SEQUENCE  test_seq
+           INCREMENT  BY  1
+           START  WITH  1
+           NOMAXVALUE
+           NOCYCLE
+           NOCACHE;
+
+  SELECT * FROM tab;
+  SELECT * FROM seq;
+
+  -- 세개의 테이블에 데이터를 추가하는 프로시저 작성
+  CREATE  OR  REPLACE  PROCEDURE  pInsertTest
+  (
+         pName  VARCHAR2,
+         pBirth   VARCHAR2,
+         pScore  NUMBER
+  )
+  IS
+        vGrade  VARCHAR2(10);
+  BEGIN
+        IF  pScore < 0 OR pScore > 100 THEN
+            RAISE_APPLICATION_ERROR(-20001, '점수는 0~100 사이만 가능');
+        END IF;
+
+        IF  pScore >= 80  THEN vGrade := '우수';
+        ELSIF  pScore >= 60  THEN vGrade := '보통';
+        ELSE  vGrade := '미달';
+        END IF;
+
+        INSERT INTO test1(num, name) VALUES (test_seq.NEXTVAL, pName);
+        INSERT INTO test2(num, birth) VALUES (test_seq.CURRVAL, TO_DATE(pBirth, 'YYYY-MM-DD') );
+        INSERT INTO test3(num, score, grade) VALUES (test_seq.CURRVAL, pScore, vGrade);
+
+        -- INSERT ALL
+        --     INTO  test1(num, name) VALUES (test_seq.NEXTVAL, pName)
+        --     INTO test2(num, birth) VALUES (test_seq.CURRVAL, TO_DATE(pBirth, 'YYYY-MM-DD') )
+        --     INTO test3(num, score, grade) VALUES (test_seq.CURRVAL, pScore, vGrade)
+        -- SELECT * FROM dual;
+
+        COMMIT;
+  END;
+  /
+
+  EXEC  pInsertTest('김자바', '2000-10-10', 85);
+
+  SELECT * FROM test1;
+  SELECT * FROM test2;
+  SELECT * FROM test3;
+
+  EXEC  pInsertTest('이자바', '10/10/1995', 75);
+         -- 하나의 테이블이라도 INSERT 되지 않으면 전체가 ROLLBACK
+
+  SELECT * FROM test1;
+  SELECT * FROM test2;
+  SELECT * FROM test3;
+
+
+  -- 세개의 테이블의 데이터를 수정하는 프로시저 작성
+  CREATE  OR  REPLACE  PROCEDURE  pUpdateTest
+  (
+         pNum  NUMBER,
+         pName  VARCHAR2,
+         pBirth   VARCHAR2,
+         pScore  NUMBER
+  )
+  IS
+        vGrade  VARCHAR2(10);
+  BEGIN
+        IF  pScore < 0 OR pScore > 100 THEN
+            RAISE_APPLICATION_ERROR(-20001, '점수는 0~100 사이만 가능');
+        END IF;
+
+        IF  pScore >= 80  THEN vGrade := '우수';
+        ELSIF  pScore >= 60  THEN vGrade := '보통';
+        ELSE  vGrade := '미달';
+        END IF;
+ 
+        UPDATE  test1  SET  name = pName  WHERE num = pNum;
+        UPDATE  test2  SET  birth = TO_DATE(pBirth, 'YYYY-MM-DD')  WHERE num = pNum;
+        UPDATE  test3  SET  score = pScore, grade = vGrade  WHERE num = pNum;
+
+        COMMIT;
+  END;
+  /
+
+  EXEC pUpdateTest(1, '김자바', '2000-10-10', 75);
+
+  SELECT * FROM test1;
+  SELECT * FROM test2;
+  SELECT * FROM test3;
+
+  -- 세개의 테이블의 데이터를 삭제하는 프로시저 작성
+  CREATE  OR  REPLACE  PROCEDURE  pDeleteTest
+  (
+         pNum  NUMBER
+  )
+  IS
+  BEGIN
+        DELETE FROM test3 WHERE num = pNum; 
+        DELETE FROM test2 WHERE num = pNum;
+        DELETE FROM test1 WHERE num = pNum;
+
+        COMMIT;
+  END;
+  /
+
+  EXEC pDeleteTest( 1 );
+
+  SELECT * FROM test1;
+  SELECT * FROM test2;
+  SELECT * FROM test3;
+
+  -- 번호에 해당하는  레코드 출력
+  CREATE OR REPLACE PROCEDURE pSelectOneTest
+  (
+         pNum  IN  NUMBER
+  )
+  IS
+        TYPE  MYTYPE  IS  RECORD
+        (
+              num  test1.num%TYPE,
+              name  test1.name%TYPE,
+              birth  test2.birth%TYPE,
+              score  test3.score%TYPE,
+              grade  test3.grade%TYPE
+        );
+        rec  MYTYPE;
+  BEGIN
+        SELECT t1.num, name, birth, score, grade  INTO  rec
+        FROM test1 t1
+        JOIN test2 t2  ON t1.num = t2.num
+        JOIN test3 t3  ON t1.num = t3.num
+        WHERE t1.num = pNum;
+
+        DBMS_OUTPUT.PUT_LINE(
+               rec.num || ' : ' || rec.name || ' : ' || rec.birth || ' : ' || rec.score || ' : ' || rec.grade );
+  END;
+  /
+
+  EXEC pSelectOneTest(2);
+
+ -- -----------------------------------------------------------
+ -- OUT 파라미터 : 프로시저가 결과를 호출자에게 돌려주는 기능
+    -- OUT 파라미터는 프로시저 안에서 변경 가능
+
+ CREATE  OR REPLACE  PROCEDURE  pSelectOutTest
+ (
+         pNum  IN  NUMBER,
+         pName OUT VARCHAR2,
+         pScore OUT NUMBER
+  )
+  IS 
+  BEGIN
+        -- pNum := 10; -- 에러. IN 파라미터는 읽기전용
+
+        SELECT name, score INTO  pName, pScore
+        FROM test1 t1
+        JOIN test3 t3 ON t1.num = t3.num
+        WHERE t1.num = pNum;
+  END;
+  /
+
+SELECT * FROM test1;
+
+  -- OUT 파라미터 확인용 프로시저
+     CREATE  OR  REPLACE   PROCEDURE  pSelectResultTest
+     IS
+          vName  VARCHAR2(30);
+          vScore  NUMBER(3);
+     BEGIN
+           -- 다른 프로시저 호출
+              pSelectOutTest(2, vName, vScore);
+
+              DBMS_OUTPUT.PUT_LINE( vName || ' : ' || vScore );
+     END;
+     /
+
+    EXEC pSelectResultTest;
+
+
+ -- ※ 함수
+    -- : 사용자가 직접 로직을 구현하여 구현한 함수
+    -- : 내장 함수(빌트인 함수)처럼 쿼리에서 호출하거나 EXECUTE 문을 통해 실행 가능
+
+    -- 함수의 파라미터, RETURN 타입에서는  타입의 크기를 명시하지 않는다.
+
+     -------------------------------------------------------
+     -- 합구하기
+     CREATE OR REPLACE FUNCTION fnSum
+     (
+              n  IN  NUMBER
+     )
+     RETURN  NUMBER
+     IS
+           s  NUMBER := 0;
+     BEGIN
+           FOR i IN 1 .. n LOOP
+                 s := s + i;
+           END LOOP;
+           RETURN s;
+     END;
+     /
+
+    SELECT * FROM user_procedures;
+    SELECT fnSum(100) FROM dual;
+
+    -- a의 b 승의 값을 계산하는 함수
+     CREATE OR REPLACE FUNCTION fnPow
+     (
+              a  IN  NUMBER, b IN NUMBER
+     )
+     RETURN  NUMBER
+     IS
+           s  NUMBER := 1;
+     BEGIN
+
+          IF b >= 0 THEN
+              FOR n IN 1 .. b   LOOP
+                    s := s * a;
+              END LOOP;
+          ELSE
+              FOR n IN 1 .. (-b)   LOOP
+                    s := s / a;
+              END LOOP;
+          END IF;
+           
+           RETURN s;
+     END;
+     /
+
+    SELECT fnPow(2, 10), fnPow(2, -2) FROM dual;
+
+    -- -----------------------------------------
+    -- 주민번호를 이용하여 성별, 생년월일, 나이 구하는 함수
+    -- 성별
+    CREATE  OR  REPLACE  FUNCTION  fnGender
+    (
+           rrn  VARCHAR2
+    )
+    RETURN  VARCHAR2
+    IS
+         s NUMBER(1);
+         b VARCHAR2(6);
+    BEGIN
+         IF LENGTH(rrn) = 14 THEN
+            s := SUBSTR(rrn, 8, 1);
+         ELSIF LENGTH(rrn) = 13 THEN
+            s := SUBSTR(rrn, 7, 1);
+         ELSE
+            RAISE_APPLICATION_ERROR(-20001, '주민번호 오류');
+         END IF;
+
+         IF MOD(s, 2) = 1 THEN
+             b := '남자';
+         ELSE
+             b := '여자';
+         END IF;
+
+         RETURN b;
+    END;
+    /
+ 
+    SELECT name, rrn, fnGender(rrn)  FROM emp;
+
+   -- 생년월일
+    CREATE  OR  REPLACE  FUNCTION  fnBirth
+    (
+           rrn  VARCHAR2
+    )
+    RETURN  DATE
+    IS
+         s NUMBER(1);
+         b VARCHAR2(8);
+    BEGIN
+         IF LENGTH(rrn) = 14 THEN
+            s := SUBSTR(rrn, 8, 1);
+         ELSIF LENGTH(rrn) = 13 THEN
+            s := SUBSTR(rrn, 7, 1);
+         ELSE
+            RAISE_APPLICATION_ERROR(-20001, '주민번호 오류');
+         END IF;
+
+         b := SUBSTR(rrn, 1, 6);
+         CASE
+             WHEN  s  IN  (1,2,5,6)  THEN  b := '19' || b;
+             WHEN  s  IN  (3,4,7,8)  THEN  b := '20' || b;
+             ELSE  b := '18' || b;
+         END CASE;
+
+         RETURN TO_DATE(b, 'YYYYMMDD');
+    END;
+    /
+
+    SELECT name, rrn, fnGender(rrn), fnBirth(rrn)  FROM emp;
+
+    -- 나이
+    CREATE  OR  REPLACE  FUNCTION  fnAge
+    (
+           birth DATE
+    )
+    RETURN  NUMBER
+    IS
+    BEGIN
+         RETURN TRUNC( MONTHS_BETWEEN(SYSDATE, birth) / 12 );
+    END;
+    /
+
+    SELECT name, rrn, fnGender(rrn), fnBirth(rrn), fnAge(fnBirth(rrn))  FROM emp;
+
+     -------------------------------------------------------
+     -- 문제
+     -- score1 테이블 작성
+          hak     문자(20)  기본키
+          name   문자(30)  NOT  NULL
+          kor      숫자(3)     NOT  NULL
+          eng      숫자(3)    NOT  NULL
+          mat      숫자(3)    NOT  NULL
+
+      -- score2 테이블 작성
+          hak     문자(20)  기본키, score1 테이블의 참조키
+          kor      숫자(2,1)     NOT  NULL
+          eng      숫자(2,1)    NOT  NULL
+          mat      숫자(2,1)    NOT  NULL
+     
+      -- 테이블 작성
+      CREATE TABLE score1 (
+          hak VARCHAR2(20) NOT NULL,
+          name VARCHAR2(30) NOT NULL,
+          kor NUMBER(3) NOT NULL,
+          eng NUMBER(3) NOT NULL,
+          mat NUMBER(3) NOT NULL,
+          CONSTRAINT pk_score1_hak PRIMARY KEY(hak)
+      );
+
+      CREATE TABLE score2 (
+          hak VARCHAR2(20) NOT NULL,
+          kor NUMBER(2,1) NOT NULL,
+          eng NUMBER(2,1) NOT NULL,
+          mat NUMBER(2,1) NOT NULL,
+          PRIMARY KEY(hak),
+          FOREIGN KEY(hak) REFERENCES score1(hak)
+      );
+
+     -- 평점을 구하는 함수 작성
+         -- 함수명 : fnGrade(s)
+             95~100:4.5    90~94:4.0
+             85~89:3.5     80~84:3.0
+             75~79:2.5     70~74:2.0
+             65~69:1.5     60~64:1.0
+             60미만 0
+       
+      CREATE OR REPLACE FUNCTION fnGrade
+      (
+          pScore NUMBER
+      )
+      RETURN NUMBER
+      IS
+         n NUMBER(2, 1);
+      BEGIN
+         IF  pScore<0 OR  pScore>100 THEN
+                 RAISE_APPLICATION_ERROR(-20001, '점수는 0~100사이만 가능합니다.');
+         END IF;
+
+         IF pScore>=95 THEN n := 4.5;
+         ELSIF pScore>=90 THEN n := 4.0;
+         ELSIF pScore>=85 THEN n := 3.5;
+         ELSIF pScore>=80 THEN n := 3.0;
+         ELSIF pScore>=75 THEN n := 2.5;
+         ELSIF pScore>=70 THEN n := 2.0;
+         ELSIF pScore>=65 THEN n := 1.5;
+         ELSIF pScore>=60 THEN n := 1.0;
+         ELSE n := 0.0;
+         END IF;
+
+         RETURN n;
+      END;
+      /
+
+      -- score1 테이블과 score2 테이블에 데이터를 추가하는 프로시저 만들기
+         프로시저명 : pScoreInsert
+         실행예 : EXEC pScoreInsert('1111', '가가가', 80, 60, 75);
+   
+         score1 테이블 => '1111', '가가가', 80, 60, 75  정보 추가
+         score2 테이블 => '1111',            3.0, 1.0, 2.5 정보 추가(국, 영, 수 점수가 평점으로 계산되어 추가)
+   
+         단, 국어, 영어, 수학 점수는 0~100 사이가 아니면 예외 발생하고 종료
+ 
+      CREATE  OR  REPLACE  PROCEDURE  pScoreInsert
+      (
+              pHak    IN  VARCHAR2,
+              pName  IN  VARCHAR2,
+              pKor   IN  NUMBER,
+              pEng   IN  NUMBER,
+              pMat   IN  NUMBER
+      )
+      IS
+      BEGIN
+            -- fnGrade() 에서 유효성검사를 했으므로 하지 않아도 됨
+            IF  pkor<0 OR  pkor>100 OR peng<0 OR peng>100 OR pmat<0 OR pmat>100 THEN
+                 RAISE_APPLICATION_ERROR(-20001, '점수는 0~100사이만 가능합니다.');
+            END IF;
+      
+            INSERT INTO score1(hak, name, kor, eng, mat) VALUES
+                     (pHak, pName, pKor, pEng, pMat);
+            INSERT INTO score2(hak, kor, eng, mat) VALUES
+                     (pHak, fnGrade(pKor), fnGrade(pEng), fnGrade(pMat));
+
+            COMMIT;
+      END;
+      /
+
+     -- score1 테이블과 score2 테이블에 데이터를 수정하는 프로시저 만들기
+         프로시저명 : pScoreUpdate
+         실행예 : EXEC pScoreUpdate('1111', '가가가', 90, 60, 75);
+   
+         score1 테이블 => 학번이 '1111' 인 자료를  '가가가', 90, 60, 75  으로 정보 수정
+         score2 테이블 => 학번이 '1111' 인 자료를           4.0, 1.0, 2.5 으로 정보 수정(국, 영, 수 점수가 평점으로 계산되어 수정)
+   
+         단, 국어, 영어, 수학 점수는 0~100 사이가 아니면 예외 발생하고 종료
+
+      CREATE  OR  REPLACE  PROCEDURE  pScoreUpdate
+      (
+              pHak    IN  VARCHAR2,
+              pName  IN  VARCHAR2,
+              pKor   IN  NUMBER,
+              pEng   IN  NUMBER,
+              pMat   IN  NUMBER
+      )
+      IS
+      BEGIN
+            IF  pkor<0 OR  pkor>100 OR peng<0 OR peng>100 OR pmat<0 OR pmat>100 THEN
+                 RAISE_APPLICATION_ERROR(-20001, '점수는 0~100사이만 가능합니다.');
+            END IF;
+      
+            UPDATE score1 SET name=pName, kor=pKor, eng=pEng, mat=pMat 
+            WHERE hak=pHak;
+
+            UPDATE score2 SET kor=fnGrade(pKor), eng=fnGrade(pEng), mat=fnGrade(pMat)
+            WHERE hak=pHak;
+
+            COMMIT;
+      END;
+      /
+   
+      -- score1 테이블과 score2 테이블에 데이터를 삭제하는 프로시저 만들기
+         프로시저명 : pScoreDelete
+         실행예 : EXEC pScoreDelete('1111');
+         score1 과 score2 테이블 정보 삭제
+
+      CREATE  OR  REPLACE  PROCEDURE  pScoreDelete
+      (
+              pHak    IN  VARCHAR2
+      )
+      IS
+      BEGIN
+            DELETE FROM score2 WHERE hak = pHak;
+            DELETE FROM score1 WHERE hak = pHak;
+
+            COMMIT;
+      END;
+      /
+
+ 평점으로 계산되어 수정)
+   
+         단, 국어, 영어, 수학 점수는 0~100 사이가 아니면 예외 발생하고 종료
+   
+      -- score1 테이블과 score2 테이블에 데이터를 삭제하는 프로시저 만들기
+         프로시저명 : pScoreDelete
+         실행예 : EXEC pScoreDelete('1111');
+         score1 과 score2 테이블 정보 삭제
+
+         SELECT * 
+         FROM score1 
+         JOIN score2 ON score1.hak=score2.hak;
