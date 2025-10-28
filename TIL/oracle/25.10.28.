@@ -1,2 +1,298 @@
 25.10.28. TUE
 
+-- ■ PL/SQL
+ -- ※ 트리거
+   -- : 미리 정해 놓은 특정 조건이 만족하거나 어떤 동작이 수행하면 자동으로 실행하도록 정의한 동작
+   -- : 예를 들어 DML(INSERT, UPDATE, DELETE) 문장이 실행되거나 DDL(CREATE, ALTER, DROP) 문장이 실행될 때 트리거가 실행될 수 있다.
+   -- : 트리거는 CREATE TRIGGER 시스템 권한이 있어야 생성 가능하다.
+
+   --관리자 계정(sys) : sky에게 트리거 생성 권한 부여
+   GRANT CREATE TRIGGER TO sky;
+
+   --sky 계정 : 시스템 권한 확인
+   SELECT * FROM USER_SYS_PRIVS;
+
+     -------------------------------------------------------
+     -- 문장 트리거
+        -- : 하나의 DML 문에서 트리거는 한번 일어난다.
+        -- : 예를 들어 "DELETE FROM 테이블;" 문장으로 5개의 레코드가 삭제 되어도 트리거도 한번 실행 된다.
+        -- : 테이블에 레코드가 입력, 수정, 삭제 등의 로그 기록
+        create table test(
+            num NUMBER PRIMARY KEY,
+            name VARCHAR2(50) NOT NULL,
+            content VARCHAR2(4000) NOT NULL
+        );
+
+        CREATE TABLE test_info(
+            memo VARCHAR2(100) NOT NULL,
+            reg_date DATE DEFAULT SYSDATE
+        );
+
+        --test 테이블에 DML 작업이 일어날 경우 DML 작업이 일어난 시간을 등록하느 ㄴ문장 트리거
+        CREATE OR REPLACE TRIGGER testInfoTrigger
+        AFTER INSERT OR UPDATE OR DELETE ON test
+        BEGIN
+                IF INSERTING THEN
+                    INSERT INTO test_info(memo) VALUES('데이터 추가');
+                ELSIF UPDATING THEN
+                    INSERT INTO test_info(memo) VALUES('데이터 수정');
+                ELSIF DELETING THEN
+                    INSERT INTO test_info(memo) VALUES('데이터 삭제');
+                END IF;
+        END;
+        /
+
+        --트리거 확인
+        SELECT * FROM user_triggers;
+
+        --트리거 소스 확인
+        SELECT * FROM  user_source;
+
+        --의존관계 확인
+        SELECT * FROM  user_dependencies;
+
+        --확인
+        INSERT INTO test (num,name,content) VALUES (1,'a','aaa');
+        INSERT INTO test (num,name,content) VALUES (2,'b','bbb');
+        INSERT INTO test (num,name,content) VALUES (3,'c','ccc');
+        commit;
+
+        SELECT * FROM test;
+        SELECT * FROM TEST_INFO;
+
+        DELETE FROM test;
+            --3개의 행이 삭제되었지만, 문장트리거는 한 번만 실행됨
+        commit;
+
+        SELECT * FROM test;
+        SELECT * FROM TEST_INFO;
+
+        --트리거 삭제
+        DROP  TRIGGER testInfoTrigger;
+        SELECT * FROM user_triggers;
+
+        --평일 9시에서 18시까지만 test테이블에 DML이 가능한 문장 트리거 작성
+        CREATE OR REPLACE TRIGGER testTrigger
+        BEFORE INSERT OR UPDATE OR DELETE ON test
+        BEGIN 
+            IF TO_CHAR(SYSDATE,'D') IN (1,7) 
+                --OR (TO_CHAR(sysdate, 'HH24'))<9 OR (TO_CHAR(SYSDATE,'HH24'))>18 THEN
+                OR (TO_CHAR(sysdate, 'HH24'))>=14 OR (TO_CHAR(SYSDATE,'HH24'))<15 THEN
+              RAISE_APPLICATION_ERROR(-20001, '데이터를 변경할 수 있는 시간이 아닙니다.');
+            END IF;
+        END;
+        /
+
+        --확인
+        INSERT INTO test(num,name,content) VALUES(1,'a','aaa');
+        COMMIT;
+
+        DROP TABLE test PURGE;
+        drop table test_info purge;
+        DROP TRIGGER testTrigger;
+
+     -------------------------------------------------------
+     -- 행 트리거
+        -- : DML 문에서 조건만족하는 모든 행에 대하여 트리거나 일어난다.
+        -- : 예를 들어 "DELETE FROM 테이블;" 문장으로 5개의 레코드가 삭제된 경우 트리거는 5번 실행 된다.
+        -- : OLD 와 NEW 레코드
+          -- 행 트리거에서만 사용 가능
+          -- :OLD 
+            UPDATE 에서는 수정전 레코드, DELETE 에서는 삭제할 레코드
+          -- :NEW
+            INSERT에서는 추가할 레코드, UPDATE 에서는 수정할 레코드
+
+                CREATE TABLE score1 (
+          hak VARCHAR2(20) NOT NULL,
+          name VARCHAR2(30) NOT NULL,
+          kor NUMBER(3) NOT NULL,
+          eng NUMBER(3) NOT NULL,
+          mat NUMBER(3) NOT NULL,
+          CONSTRAINT pk_score1_hak PRIMARY KEY(hak)
+      );
+
+      CREATE TABLE score2 (
+          hak VARCHAR2(20) NOT NULL,
+          kor NUMBER(2,1) NOT NULL,
+          eng NUMBER(2,1) NOT NULL,
+          mat NUMBER(2,1) NOT NULL,
+          PRIMARY KEY(hak),
+          FOREIGN KEY(hak) REFERENCES score1(hak)
+      );
+
+     -- 평점을 구하는 함수 작성
+         -- 함수명 : fnGrade(s)
+             95~100:4.5    90~94:4.0
+             85~89:3.5     80~84:3.0
+             75~79:2.5     70~74:2.0
+             65~69:1.5     60~64:1.0
+             60미만 0
+       
+      CREATE OR REPLACE FUNCTION fnGrade
+      (
+          pScore NUMBER
+      )
+      RETURN NUMBER
+      IS
+         n NUMBER(2, 1);
+      BEGIN
+         IF  pScore<0 OR  pScore>100 THEN
+                 RAISE_APPLICATION_ERROR(-20001, '점수는 0~100사이만 가능합니다.');
+         END IF;
+
+         IF pScore>=95 THEN n := 4.5;
+         ELSIF pScore>=90 THEN n := 4.0;
+         ELSIF pScore>=85 THEN n := 3.5;
+         ELSIF pScore>=80 THEN n := 3.0;
+         ELSIF pScore>=75 THEN n := 2.5;
+         ELSIF pScore>=70 THEN n := 2.0;
+         ELSIF pScore>=65 THEN n := 1.5;
+         ELSIF pScore>=60 THEN n := 1.0;
+         ELSE n := 0.0;
+         END IF;
+
+         RETURN n;
+      END;
+      /
+
+SELECT * FROM sc score 1;
+SELECT * FROM sc score2 1;
+
+--score1 테이블에 데이터가 추가되면 score2 테이블에 데이터가 자동으로 추가되는 트리거
+CREATE OR REPlaCe trigger scoreInsertTrigger
+AFTER INSERT ON score1
+FOR EACH ROW --행트리거
+DECLARE
+--변수선언
+BEGIN
+        --:NEW :INSERT 하는 트리거
+        --트리거 안에서는 DML 다음에 COMMIT 하지 않는다
+        --DML이 묶여서 하나의 트랜잭션으로 처리된다.
+    INSERT INTO score2(hak,kor,eng,mat) VALUES(:New.hak, fnGrade(:NEW.kor),fnGrade(:NEW.eng), fnGrade(:NEW.mat));
+END;
+/
+
+
+INSERT INTO score1(hak,name,kor,eng,mat) VALUES('1','김자바',90,80,70);
+INSERT INTO score1(hak,name,kor,eng,mat) VALUES('2','다자바',100,95,65);
+commit;
+
+SELECT * FROM score1;
+SELECT * FROM score2;
+
+--score1 테이블에 데이터가 수정되면 score2 테이블에 데이터가 자동으로 추가되는 트리거
+CREATE OR REPLACE trigger scoreUpdateTrigger
+AFTER UPDATE ON score1
+FOR EACH ROW --행트리거
+DECLARE
+BEGIN
+        --:OLD : UPDATE 전 레코드
+    UPDATE score2 SET kor = fnGrade(:NEW.kor), eng = fnGrade(:NEW.eng),
+    mat=fnGrade(:NEW.mat) WHERE hak = :OLD.hak;
+END;
+/
+
+UPDATE score1 SET kor=100 WHERE hak='1';
+SELECT * FROM score1;
+SELECT * FROM score2;
+
+--score1 테이블의 데이터가 삭제되면 score2 테이블의 데이터도 자동으로 삭제되는 트리거
+CREATE OR REPlaCe trigger scoreDeleteTrigger
+BEFORE DELETE ON score1
+FOR EACH ROW
+DECLARE
+BEGIN
+    DELETE FROM score2 WHERE hak =:OLD.hak;
+END;
+/
+
+DELETE FROM score1 WHERE hak='2';
+COMMIT;
+
+select * from score2;
+
+--트리거를 이용하여 부모의 기본키가 변경되면 자식의 참조키가 변경되도록 UPDATE 트리ㅓㄱ 수정
+CREATE OR REPLACE TRIGGER scoreUpdateTrigger
+AFTER UPDATE on score1
+FOR EACH ROW
+DECLARE
+BEGIN
+    UPDATE score1 SET hak= :NEW.hak, kor=fn.fnGrade(:NEW.kor), eng=fnGrade(:NEW.eng), mat=fnGrade(:NEW.mat) WHERE hak = :OLD.hak;
+END;
+/   
+
+ -- ※ 패키지(Package)
+     -------------------------------------------------------
+     --
+     SELECT * FROM user_objects;
+     SELECT * FROM user_objects WHERE object_type='PACKAGE';
+
+
+     --패키지 선언
+     CREATE OR REPLACE PACKAGE pEmp IS
+        FUNCTION fnTax(p IN NUMBER) RETURN NUMBER;
+        PROCEDURE empList(pName VARCHAR2);
+        PROCEDURE empList;
+    END pEmp;
+    /
+
+    SELECT * FROM user_objects WHERE object_type='PACKAGE';
+
+     -- 패키지 몸체
+CREATE OR REPLACE PACKAGE BODY pEmp IS
+
+   FUNCTION fnTax(p IN NUMBER) RETURN NUMBER IS
+      t NUMBER := 0;
+   BEGIN
+      IF p >= 3000000 THEN
+         t := TRUNC(p*0.03, -1);
+      ELSIF p >= 2000000 THEN
+         t := TRUNC(p*0.02, -1);
+      ELSE
+         t := 0;
+      END IF;
+      RETURN t;
+   END fnTax;
+
+   PROCEDURE empList(pName VARCHAR2) IS
+      vName VARCHAR2(30);
+      vSal NUMBER;
+      CURSOR cur_emp IS
+         SELECT name, sal FROM emp WHERE INSTR(name, pName) >= 1;
+   BEGIN
+      OPEN cur_emp;
+      LOOP
+         FETCH cur_emp INTO vName, vSal;
+         EXIT WHEN cur_emp%NOTFOUND;
+         DBMS_OUTPUT.PUT_LINE(vName || ' : ' || vSal);
+      END LOOP;
+      CLOSE cur_emp;
+   END empList;
+
+   PROCEDURE empList IS
+   BEGIN
+      FOR rec IN (SELECT name, sal+bonus AS pay, fnTax(sal+bonus) AS tax FROM emp) LOOP
+         DBMS_OUTPUT.PUT_LINE(rec.name || ' : ' || rec.pay || ' : ' || rec.tax);
+      END LOOP;
+   END empList;
+
+END pEmp;
+/
+
+SELECT * FROM user_objects WHERE object_type='PACKAGE';
+SELECT * FROM user_objects WHERE object_type='PACKAGE BODY';
+SELECT * FROM user_procedures WHERE object_type='PACKAGE';
+
+EXEC pEmp.empList('김');
+EXEC pEmp.empList;
+
+END;
+/
+            END;
+            /
+            CREATE SEQUENCE 
+            INCREMENT BY 1
+            START WITH 1
+            NOMAXVALUE
+            NOCYCLE
+            NOCACHE;
