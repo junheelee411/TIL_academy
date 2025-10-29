@@ -1,2 +1,67 @@
 25.10.29. Wed
 
+CREATE TABLE roomReservation
+(
+     reservationNum  NUMBER PRIMARY KEY
+     ,roomNum        NUMBER  NOT NULL
+     ,checkIn        VARCHAR2(8) NOT NULL
+     ,checkOut        VARCHAR2(8) NOT NULL
+);
+
+CREATE SEQUENCE roomReservation_seq;
+
+INSERT INTO roomReservation(reservationNum, roomNum, checkIn, checkOut) VALUES
+       (roomReservation_seq.NEXTVAL, 1, '20240722', '20240725');
+INSERT INTO roomReservation(reservationNum, roomNum, checkIn, checkOut) VALUES
+       (roomReservation_seq.NEXTVAL, 2, '20240721', '20240724');
+INSERT INTO roomReservation(reservationNum, roomNum, checkIn, checkOut) VALUES
+       (roomReservation_seq.NEXTVAL, 3, '20240727', '20240801');
+INSERT INTO roomReservation(reservationNum, roomNum, checkIn, checkOut) VALUES
+       (roomReservation_seq.NEXTVAL, 1, '20240727', '20240730');
+INSERT INTO roomReservation(reservationNum, roomNum, checkIn, checkOut) VALUES
+       (roomReservation_seq.NEXTVAL, 5, '20240726', '20240729');
+INSERT INTO roomReservation(reservationNum, roomNum, checkIn, checkOut) VALUES
+       (roomReservation_seq.NEXTVAL, 8, '20240724', '20240726');
+INSERT INTO roomReservation(reservationNum, roomNum, checkIn, checkOut) VALUES
+       (roomReservation_seq.NEXTVAL, 9, '20240723', '20240726');
+INSERT INTO roomReservation(reservationNum, roomNum, checkIn, checkOut) VALUES
+       (roomReservation_seq.NEXTVAL, 8, '20240727', '20240728');
+INSERT INTO roomReservation(reservationNum, roomNum, checkIn, checkOut) VALUES
+       (roomReservation_seq.NEXTVAL, 10, '20240729', '20240730');
+
+COMMIT;
+
+SELECT reservationNum, roomNum, checkIn, checkOut
+FROM roomReservation
+ORDER BY checkIn ASC;
+
+
+-- --------------------------------------------------------
+-- 20240724 ~ 20240729 까지 룸을 예약 해야하는 경우, 예약할 수 없는 룸 리스트
+-- 0729에 checkOut 되면 0729에 checkIn 가능
+
+    SELECT *
+    FROM roomReservation
+    WHERE NOT (checkOut <= TO_DATE('20240724','YYYYMMDD') 
+           OR checkIn >= TO_DATE('20240729','YYYYMMDD'));
+
+-- --------------------------------------------------------
+-- 20240727 ~ 20240728
+
+    SELECT *
+    FROM roomReservation
+    WHERE NOT (checkOut <= TO_DATE('20240727','YYYYMMDD') 
+           OR checkIn >= TO_DATE('20240728','YYYYMMDD'));
+
+
+-- --------------------------------------------------------
+-- 20240730 ~ 20240801
+
+    SELECT *
+    FROM roomReservation
+    WHERE NOT (checkOut <= TO_DATE('20240730','YYYYMMDD') 
+           OR checkIn >= TO_DATE('20240801','YYYYMMDD'));
+
+
+
+
