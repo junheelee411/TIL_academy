@@ -2,3 +2,199 @@
 
 Maven?
 Java 기반 프로젝트의 빌드, 의존성 관리, 배포 등을 자동화해주는 도구
+
+package db.score;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.sql.SQLDataException;
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.List;
+
+public class ScoreUI {
+    private ScoreDAO dao = new ScoreDAOImpl(); // ScoreDAO 인터페이스로 선언 (DI 원칙)
+    private BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+    public void menu() {
+        int ch;
+        System.out.println("========== 성적처리 시스템 ==========");
+
+        while (true) {
+            try {
+                System.out.print("\n1.등록  2.수정  3.삭제  4.학번검색  5.이름검색  6.전체리스트  0.종료 => ");
+                ch = Integer.parseInt(br.readLine());
+
+                switch (ch) {
+                    case 1: insert(); break;
+                    case 2: update(); break;
+                    case 3: delete(); break;
+                    case 4: findByHak(); break;
+                    case 5: findByName(); break;
+                    case 6: findAll(); break;
+                    case 0:
+                        System.out.println("프로그램을 종료합니다.");
+                        return;
+                    default:
+                        System.out.println("잘못된 입력입니다.");
+                }
+
+            } catch (NumberFormatException e) {
+                System.out.println("입력 오류: 숫자를 입력하세요.");
+            } catch (Exception e) {
+                System.out.println("오류 발생: " + e.getMessage());
+            }
+        }
+    }
+
+    protected void insert() {
+        ScoreDTO dto = new ScoreDTO();
+        try {
+            System.out.print("학번 ? ");
+            dto.setHak(br.readLine());
+            System.out.print("이름 ? ");
+            dto.setName(br.readLine());
+            System.out.print("생일(YYYY-MM-DD) ? ");
+            dto.setBirth(br.readLine());
+
+            System.out.print("국어 ? ");
+            dto.setKor(Integer.parseInt(br.readLine()));
+            System.out.print("영어 ? ");
+            dto.setEng(Integer.parseInt(br.readLine()));
+            System.out.print("수학 ? ");
+            dto.setMat(Integer.parseInt(br.readLine()));
+
+            int result = dao.insertScore(dto);
+
+            if (result > 0) {
+                System.out.println("데이터 등록이 완료되었습니다.");
+            } else {
+                System.out.println("등록 실패.");
+            }
+
+        } catch (NumberFormatException e) {
+            System.out.println("에러-점수는 숫자만 가능합니다.");
+        } catch (SQLIntegrityConstraintViolationException e) {
+            if(e.getErrorCode() == 1) {
+                System.out.println("에러-학번 중복으로 추가 불가");
+            } else if(e.getErrorCode() == 1400) {
+                System.out.println("에러-필수 입력 사항을 입력 안 함");
+            } else {
+                System.out.println(e.toString());
+            }
+        } catch (SQLDataException e) {
+            if(e.getErrorCode() == 1840 || e.getErrorCode() == 1861)
+                System.out.println("에러 - 날짜 형식이 올바르지 않습니다.");
+        }catch (SQLException e) {
+			e.printStackTrace();
+		}catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void update() { 
+        System.out.println("\n[데이터 수정]");
+
+        try {
+            System.out.print("수정할 학번 ? ");
+            String hak = br.readLine();
+
+            ScoreDTO existing = dao.findById(hak);
+            if (existing == null) {
+                System.out.println("등록된 자료가 아닙니다.");
+                return;
+            }
+
+            ScoreDTO dto = new ScoreDTO();
+            dto.setHak(hak);
+
+            System.out.print("이름(" + existing.getName() + ") ? ");
+            String name = br.readLine();
+            dto.setName(name.isEmpty() ? existing.getName() : name);
+
+            System.out.print("생일(" + existing.getBirth() + ") ? ");
+            String birth = br.readLine();
+            dto.setBirth(birth.isEmpty() ? existing.getBirth() : birth);
+
+            System.out.print("국어(" + existing.getKor() + ") ? ");
+            String kor = br.readLine();
+            dto.setKor(kor.isEmpty() ? existing.getKor() : Integer.parseInt(kor));
+
+            System.out.print("영어(" + existing.getEng() + ") ? ");
+            String eng = br.readLine();
+            dto.setEng(eng.isEmpty() ? existing.getEng() : Integer.parseInt(eng));
+
+            System.out.print("수학(" + existing.getMat() + ") ? ");
+            String mat = br.readLine();
+            dto.setMat(mat.isEmpty() ? existing.getMat() : Integer.parseInt(mat));
+
+            int result = dao.updateScore(dto);
+
+            if(result == 0) {
+                System.out.println("등록된 자료가 아닙니다.");
+            } else {
+                System.out.println("데이터 수정이 완료되었습니다.");
+            }
+
+        } catch (NumberFormatException e) {
+            System.out.println("에러 - 점수는 숫자만 입력 가능");
+        } catch (SQLDataException e) {
+            if(e.getErrorCode() == 1840 || e.getErrorCode() == 1861) {
+                System.out.println("에러 - 날짜형식 입력 오류입니다.");
+            } else {
+                System.out.println(e.toString());
+            }
+        } catch (SQLException e) {
+            if(e.getErrorCode() == 1407) {
+                System.out.println("에러 - 필수 입력사항을 입력하지 않았습니다.");
+            } else {
+                System.out.println(e.toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    protected void delete() {  
+    	System.out.println("\n[데이터 삭제]"); 
+
+            try {
+                System.out.print("삭제할 학번 ? ");
+                String hak = br.readLine();
+
+                int result = dao.deleteScore(hak);
+          
+                if(result == 0) {
+                    System.out.println("등록된 자료가 아닙니다.");
+                } else {
+                    System.out.println("데이터 삭제가 완료되었습니다.");
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+                        
+    
+    protected void findByHak() { System.out.println("\n[학번 검색]"); }
+    protected void findByName() { System.out.println("\n[이름 검색]"); }
+	protected void findAll() { 
+		System.out.println("\n[전체 리스트]"); 
+		
+		List<ScoreDTO> list = dao.listScore();
+		
+		System.out.println("전체 인원수 : " + list.size());
+		for(ScoreDTO dto : list) {
+			System.out.print(dto.getHak() + "\t");
+			System.out.print(dto.getName() + "\t");
+			System.out.print(dto.getBirth() + "\t");
+			System.out.print(dto.getKor() + "\t");
+			System.out.print(dto.getEng() + "\t");
+			System.out.print(dto.getMat() + "\t");
+			System.out.print(dto.getTot() + "\t");
+			System.out.println(dto.getAve() + "\t");
+		}
+	
+	}
+}
