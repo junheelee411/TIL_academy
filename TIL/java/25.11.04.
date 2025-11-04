@@ -1,0 +1,17 @@
+25.11.04. Tue
+
+스윙 사용 시 JFrame 상속 받아야함
+JFrame - border layout 사용 - 컴포넌트 5개 배치 가능한 동적 프레임
+System.exit(0); 프로그램 종료
+
+
+    <버튼세트>
+    
+		btn1 = new JButton("버튼 1");
+		btn1.addActionListener(this);
+		add(btn1,BorderLayout.CENTER); 
+    
+			public void actionPerformed(ActionEvent e) {
+		if(e.getSource()==btn1) {
+			JOptionPane.showMessageDialog(this,	"버튼 1 클릭");
+      }
