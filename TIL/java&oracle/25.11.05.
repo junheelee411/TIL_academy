@@ -2,7 +2,23 @@
 
 # GIT
 
-commit ->로컬저장소
-push 로컬저장소->깃
+commit : workspace -> 로컬저장소
+push : 로컬저장소 -> git
 
-pull 서버->로컬저장소
+pull : 서버 -> 로컬저장소
+
+> - 변경사항있음
+? - 새로 생성
+
+git -> git staging -> commit / commit and push
+
+규칙
+1. 에러가 있으면 서버에 올리지 않는다
+2. 어떤 경우라도 남의 파일에 손대지 않는다
+
+# eclipse git perspective
+perspective -> other -> git
+
+# git clone
+git에서 repo 링크 복사 ->
+javaEE -> 우클릭 -> import -> git -> projects from git -> clone url
