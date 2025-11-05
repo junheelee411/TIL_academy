@@ -22,3 +22,20 @@ perspective -> other -> git
 # git clone
 git에서 repo 링크 복사 ->
 javaEE -> 우클릭 -> import -> git -> projects from git -> clone url
+
+이미 올린 파일은 ignore 적용 안됨
+히스토리도 자동으로 지워지지 않음
+
+# 해결
+javaEE -> 우클릭 -> team -> advanced -> untrack
+
+파일은 지워짐
+히스토리는 지워지지 않음
+
+연결 재설정
+team -> disconnect
+team -> share project
+
+git project 할 때
+업데이트 사항 생기면 pull 해야 push 가능
+
