@@ -16,3 +16,37 @@
   
 - Stream의 collect(Collector<T, A, R> collector)
   : 필터링, 매핑된 요소들을 새로운 컬렉션에 수집해서 리턴
+
+--flatMap
+- 여러개의 스트림을 하나로 묶을 때 사용
+
+--optional
+1) Optional 클래스 : null을 대하는 새로운 방법
+2) Optional<T>
+  : Integer나 Double 클래스처럼 'T' 타입의 객체를 포장해 주는 래퍼 클래스
+  : 복잡한 조건문 없이도 널(null) 값으로 인해 발생하는 예외를 처리할 수 있다.
+
+3) Optional 객체 생성
+  - Optional.empty() : 빈 Optional 객체 생성
+  - Optional.of(value)
+    : value값이 null이 아닌 경우 사용.
+    : value가 null 이면 NullPointerException
+  - Optional.ofNullable(value) : value값이 null인지 아닌지 확실하지 않은 경우에 사용
+
+4) 주요 메소드
+  - get()
+   : Optional 객체에 저장된 값 반환
+   : null 이면 NoSuchElementException 예외 발생
+  - orElse(other)
+    : null이 아니면 그 값을 반환하고 null이면 other 반환
+  - ifPresent(action)
+    : 이프프레즌트는 Optional 객체가 null이면 false
+	: Optional 객체가 null이면 아무것도 실행하지 않고 null 이 아니면 인자(action)를 실행
+  - orElseGet(supplier)
+    : 저장된 값이 존재(null 이 아니면)하면 그 값을 반환
+	: 값이 존재하지 않으면 인수(supplier)로 전달된 값 반환
+  - map(mapper)
+    : mapper 함수를 통해 입력값을 다른 값으로 변환
+    : 객체가 null 이면 빈 선택사항을 반환
+  - orElseThrow(IllegalArgumentException::new)
+    : null 인경우 예외를 던짐
