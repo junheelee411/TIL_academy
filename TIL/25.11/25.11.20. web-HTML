@@ -14,12 +14,16 @@ HTML
 : www 문서를 작성하는 Hyper Text Markup Language
 : 계층적 구조
 : 태그 - 대소문자 구분 x
+: 엔터 구분 안 함- br태그 사용
+: 공백은 한칸만 적용됨
 
 웹페이지의 구성
 : HTMl + CSS + Javascript
 
 <head>
 - 문서 제목
+
+
 
 
 
