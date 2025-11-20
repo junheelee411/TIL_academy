@@ -1,0 +1,6 @@
+자바가 어디 설치되어있어 - JAVA_HOME
+
+# URI(Uniform Resource Identifier, 통합 자원 식별자) 
+: 인터넷의 웹 페이지, 이미지 등 모든 종류의 자원을 식별하는 고유한 문자열
+자원의 위치를 나타내는 URL(Uniform Resource Locator)을 포함, URL이 자원의 주소라면 URI는 자원의 이름이나 식별자 역할 
+ex) https://www.google.com은 URL이자 URI이며, 도서의 ISBN과 같은 것도 URI의 한 종류 
