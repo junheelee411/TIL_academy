@@ -4,3 +4,25 @@
 : 인터넷의 웹 페이지, 이미지 등 모든 종류의 자원을 식별하는 고유한 문자열
 자원의 위치를 나타내는 URL(Uniform Resource Locator)을 포함, URL이 자원의 주소라면 URI는 자원의 이름이나 식별자 역할 
 ex) https://www.google.com은 URL이자 URI이며, 도서의 ISBN과 같은 것도 URI의 한 종류 
+
+# Target Runtime
+웹서버를 실행할 수 있는 환경
+
+아파치 톰캣이 자바, HTML 등의 코드를 모두 자바로 바꿔줌
+
+HTML
+: www 문서를 작성하는 Hyper Text Markup Language
+: 계층적 구조
+: 태그 - 대소문자 구분 x
+
+웹페이지의 구성
+: HTMl + CSS + Javascript
+
+<head>
+- 문서 제목
+
+
+
+
+
+
