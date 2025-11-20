@@ -20,8 +20,34 @@ HTML
 웹페이지의 구성
 : HTMl + CSS + Javascript
 
-<head>
+# block 태그
+: 혼자 한 줄 전체 차지, 항상 새로운 줄에서 시작
+: width, height, margin, padding 속성 사용 가능
+: inline 태그 포함 가능
+: 주요 태그 - div, h1~h6, hr, p, o;, ul, li, table, form 등
+
+# inline 태그
+: 다른 요소와 나란히 배치
+: content 요소만큼 폭을 차지
+: width, height 무시
+: margin은 좌우만 적용
+: padding은 적용되지만 위/아래 패딩은 다른 요소 침범
+: inline 태그 뒤에 공백이나, 엔터가 있는 경우 4px정도의 공백 생김
+: 주요태그 : span, a, img, input, select, textarea, button 등
+
+<title> </title>
 - 문서 제목
+
+<hr>
+: 선 그음 (블록 태그, 기본 폭 100%)
+
+<br>
+: 줄 넘김
+
+# 색상
+color="FF0000" : 빨간색 (#F00으로 표기 가능)
+
+
 
 
 
