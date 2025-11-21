@@ -1,1 +1,32 @@
 25.11.21. FRI
+
+css 범위는 좁게 주는 것이 좋음
+
+main article -> 자손
+main, article -> 자식 (범위 더 좋음)
+
+<style type="text/css">
+: 이 HTML 문서 안에서 사용할 스타일(CSS) 코드를 선언하는 태그
+
+시멘틱(semantic) 
+: 의미를 알려주는 태그(div와 기능 동일)
+: <header>, <footer>, <main>, <section>, <nav>: 메뉴, <aside>
+
+min-height (minimum height) <-> max-height
+: 내용이 넘치면 자동으로 높이 늘어남
+
+height
+: 내용 넘치면 내용이 밑으로 내려가짐(밑을 덮음)
+
+table 
+
+tr 행
+th 진하게, 가운데 정렬 열
+td 일반 열
+
+colspan : 가로로 합칠 수 있는 열 수 지정 
+
+Ctrl + F5 히스토리 지우고 새로고침
+
+hover
+: 마우스 포인터가 어떤 요소 위에 올라갔을 때 적용되는 스타일을 지정하는 가상 클래스
