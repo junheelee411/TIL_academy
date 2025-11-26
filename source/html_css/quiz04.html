@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>게시판</title>
+
+<style type="text/css">
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: 나눔고딕, "맑은 고딕";
+	font-size: 14px;
+	color: #222;
+}
+
+
+.layout {
+	width: 700px;
+	margin: 30px auto;
+}
+
+.layout h2 {
+	margin-bottom: 10pxs;
+	margin: 30px auto;
+}
+
+.table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.table th, .table td {
+	padding-top: 7px;
+	padding-bottom: 7px;
+}
+
+/* tr 태그는 border-collapse : collapse인 경우에만 border 가능 */
+.table>thead>tr {
+	border-top: 2px solid #212529;
+	border-bottom: 1px solid #ced4da;
+	background: #f8f9fa;
+}
+
+.table>tbody>tr, .table>tfoot>tr {
+	border-bottom: 1px solid #ced4da
+}
+
+.table th, .table td {
+	width: 100px;
+}
+
+.table th:nth-child(5n+1), .table td:nth-child(5n+1) {
+	width: 50px;
+}
+
+.table th:nth-child(5n+2), .table td:nth-child(5n+2) {
+	width: 200px;
+}
+
+.table th:nth-child(5n+3), .table td:nth-child(5n+3) {
+	width: 50px;
+}
+
+.table th:nth-child(5n+4), .table td:nth-child(5n+4) {
+	width: 50px;
+}
+
+.table th:nth-child(5n+5), .table td:nth-child(5n+5) {
+	width: 50px;
+}
+
+</style>
+</head>
+<body>
+	<div class="layout">
+		<h2>
+			<b>게시판</b>
+		</h2>
+		<p>25개(1/2 페이지)</p>
+		<br>
+
+		<table class="table">
+			<thead>
+				<tr align="center">
+					<th>번호</th>
+					<th>제목</th>
+					<th>작성자</th>
+					<th>작성일</th>
+					<th>조회수</th>
+				</tr>
+			</thead>
+			<tbody align="center">
+				<tr>
+					<td>3</td>
+					<td align="left">안녕하세요.</td>
+					<td>다자바</td>
+					<td>2022-03-12</td>
+					<td>1</td>
+				</tr>
+
+				<tr>
+					<td>2</td>
+					<td align="left">자바 강좌입니다.</td>
+					<td>홍길동</td>
+					<td>2022-03-10</td>
+					<td>1</td>
+				</tr>
+				<tr>
+					<td>1</td>
+					<td align="left">HTML 강좌입니다.</td>
+					<td>스프링</td>
+					<td>2022-03-10</td>
+					<td>1</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>회원가입</title>
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<link rel="stylesheet"
+	href="https://use.fontawesome.com/releases/v6.7.2/css/all.css">
+
+<style type="text/css">
+/* -------- 공통 기본 -------- */
+* {
+	margin: 0;
+	padding: 0;
+}
+
+*, *:before, *:after {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: "Malgun Gothic", sans-serif;
+	font-size: 14px;
+	color: #222;
+}
+
+.board {
+	width: 700px;
+	margin: 30px auto;
+}
+
+/* -------- 버튼 / 입력 -------- */
+.btn, select {
+	height: 32px;
+	line-height: 32px;
+	padding: 0 10px;
+	border: 1px solid #999;
+	border-radius: 4px;
+	background: #fff;
+	cursor: pointer;
+}
+
+.form-control {
+	height: 32px;
+	line-height: 32px;
+	padding: 0 10px;
+	border: 1px solid #999;
+	border-radius: 4px;
+}
+
+/* 길게 늘리는 필드 전용 */
+.long-input {
+	width: 380px;
+}
+
+/* -------- form layout -------- */
+.form-body {
+    width: 100%;        /* 부모 board의 700px을 그대로 사용 */
+    border-top: 2px solid #444;  /* 굵은 선 */
+    margin-top: 10px;
+}
+
+
+.form-body ul {
+	list-style: none;
+	clear: both;
+}
+
+.form-body li {
+	float: left;
+	border-bottom: 1px solid #ced4da;
+}
+
+/* 왼쪽 라벨 */
+.form-body ul>li:first-child {
+	width: 120px;
+	padding: 10px 0 10px 15px;
+	background: #f8f9fa;
+	line-height: 32px;
+}
+
+/* 오른쪽 입력칸 */
+.form-body ul>li:nth-child(2) {
+	width: 510px;
+	padding: 10px 10px;
+}
+
+/* 이메일 / 전화번호 input */
+.inline-input {
+	width: 150px;
+	display: inline-block;
+	margin-left: 8px;
+}
+
+
+/* -------- 주소 두 줄 -------- */
+.addr-row>li:first-child {
+	height: 90px;
+	line-height: 90px;
+}
+
+.addr-wrap {
+	padding: 10px 10px !important;
+}
+
+.addr-wrap .form-control {
+	width: 400px;
+	display: block;
+	margin-bottom: 8px;
+}
+
+/* 줄 삐뚤 방지 */
+.select-row>li:nth-child(2) {
+	line-height: 32px;
+}
+
+.form-footer {
+	clear: both;
+	width: 100%;
+	padding: 15px 0;
+	text-align: center;
+}
+</style>
+
+</head>
+<body>
+	<div class="board">
+		<div class="title">
+			<h3>
+				<i class="fa-solid fa-user-plus"></i> 회원가입
+			</h3>
+		</div>
+
+		<form name="boardForm" method="post">
+			<div class="form-body">
+
+				<ul>
+					<li>아이디</li>
+					<li><input type="text" name="userid" maxlength="50"
+						class="form-control long-input"></li>
+				</ul>
+
+
+				<ul>
+					<li>패스워드</li>
+					<li><input type="password" name="pwd" maxlength="100"
+						class="form-control long-input"></li>
+				</ul>
+
+				<ul>
+					<li>패스워드 확인</li>
+					<li><input type="password" name="pwd2" maxlength="100"
+						class="form-control long-input"></li>
+				</ul>
+
+				<ul>
+					<li>이름</li>
+					<li><input type="text" name="name" maxlength="100"
+						class="form-control long-input"></li>
+				</ul>
+
+				<ul>
+					<li>생년월일</li>
+					<li><input type="date" name="birth"
+						class="form-control long-input"></li>
+				</ul>
+
+				<ul class="select-row">
+					<li>이메일</li>
+					<li><select class="btn">
+							<option>선택</option>
+							<option>@naver.com</option>
+							<option>@gmail.com</option>
+					</select> <input type="text" name="email1" class="form-control inline-input">
+						<input type="text" name="email2" class="form-control inline-input">
+					</li>
+				</ul>
+
+				<ul class="select-row">
+					<li>전화번호</li>
+					<li><select class="btn">
+							<option>선택</option>
+							<option>010</option>
+							<option>011</option>
+					</select> <input type="text" name="tel2" class="form-control inline-input">
+						<input type="text" name="tel3" class="form-control inline-input">
+					</li>
+				</ul>
+
+				<ul>
+					<li>우편번호</li>
+					<li><input type="text" name="zip"
+						class="form-control inline-input">
+						<button type="submit" class="btn">우편번호 검색</button></li>
+				</ul>
+
+				<ul class="addr-row">
+					<li>주소</li>
+					<li class="addr-wrap"><input type="text" name="addr1"
+						class="form-control"> <input type="text" name="addr2"
+						class="form-control"></li>
+				</ul>
+
+				<ul>
+					<li>직업</li>
+					<li><input type="text" name="job"
+						class="form-control long-input"></li>
+				</ul>
+			</div>
+
+			<div class="form-footer">
+				<button type="submit" class="btn">회원가입</button>
+				<button type="reset" class="btn">다시입력</button>
+				<button type="button" class="btn">가입취소</button>
+			</div>
+		</form>
+	</div>
+</body>
+</html>
