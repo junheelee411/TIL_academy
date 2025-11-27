@@ -5,3 +5,18 @@ a=isFinite(123); //true
 
 숫자로 이루어져 있지 않으면 true
 b=isNaN(123); //false
+
+<인코딩과 디코딩>
+
+// 영문자, 숫자, 일부특수문자(@ * - _ + . /)를 제외하고 인코딩
+out = escape(s);
+console.log(out);
+
+// 영문자, 숫자, 인터넷 주소에 사용되는 일부 특수문자(: / ? = + & 등)를 제외하고 인코딩
+out = encodeURI(s);
+console.log(out);
+
+// 영문자, 숫자를 제외한 문자를 인코딩
+out = encodeURIComponent(s); // 자주 사용되는 함수
+console.log(out);
+
