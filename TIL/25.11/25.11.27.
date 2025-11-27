@@ -1,0 +1,7 @@
+25.11.27. Thur
+
+숫자로 이루어져 있으면 true
+a=isFinite(123); //true
+
+숫자로 이루어져 있지 않으면 true
+b=isNaN(123); //false
