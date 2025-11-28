@@ -22,3 +22,8 @@ document : 바디를 나타내는 자바스크립트 객체
 
 String - new XXX
 
+자바스크립트 날짜 유효성 검증
+const [year,month,date] = dateString.split('-').map(Number);
+return dateObj instanceof Date && isNaN(dateObj) && dateObj.getDate()===date;
+
+
