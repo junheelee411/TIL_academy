@@ -17,3 +17,8 @@ clearInterval(timer);
 1. 서버에서 html 다운
 2. 다운된 정보를 메모리에 읽어와서 객체 생성
 3. 화면 그림
+
+document : 바디를 나타내는 자바스크립트 객체
+
+String - new XXX
+
